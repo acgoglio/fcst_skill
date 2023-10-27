@@ -20,14 +20,14 @@ warnings.filterwarnings("ignore")
 #####################################
 
 # -- Workdir path -- 
-workdir = '/work/oda/ag15419/tmp/Ana_Fcst_Pers_area6/'
+workdir = '/work/oda/ag15419/tmp/Ana_Fcst_2022/'
 
 # -- Period --
-start_yy = 2017
-end_yy   = 2021
+start_yy = 2023
+end_yy   = 2023
 
 # -- Analysis type --
-flag_ts = 0
+flag_ts = 1
 flag_mean = 1
 
 # -- Area code --

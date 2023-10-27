@@ -1,0 +1,59 @@
+# Script to compare AI and MedFS 
+#
+# 1) Build the files with the metrics:
+# . set_myenv.sh N -> to set the env
+# cd QVR.dir; make -> to compile the f90 codes
+# bsub -n 1 -q s_long -J test -e aderr_1 -o adout_1 -P 0510 "sh /users_home/oda/ag15419/fcst_Vs_pers/QVR.18_6.sh 0 1 " -> to run the code for the first 2 days
+# e.g. DAYN=0; while [[ $DAYN -lt 151 ]]; do PRE=$(( $DAYN + 1 )) ; DAYN=$(( $DAYN + 5 )) ; echo $PRE $DAYN ; bsub -n 1 -q s_long -J test -e aderr_1 -o adout_1 -P 0510 "sh /users_home/oda/ag15419/fcst_Vs_pers/QVR.18_6_AI.sh $PRE $DAYN "  ; done
+#
+# 2) Plot the results 
+# load a proper py env (e.g. mappyenv)
+# for a single exp set and run fcst_skills.py
+# to compare two exps set and run fcst_skills_2ds.py 
+# the script fcst_skills_MedFSVsAI.py is ready for the comparison MF DM
+# the script fcst_skills_MedFSVsAI_pm.py produces monthly analysis (and time-series)  
+# the script fcst_skills_MedFSVsAI_pmobs.py produces monthly analysis (and time-series) + obs number
+#
+  bsub -n 1 -q s_medium -P 0510 python fcst_skills_MedFSVsAI_pmobs.py 2021 08 01 31
+  bsub -n 1 -q s_medium -P 0510 python fcst_skills_MedFSVsAI_pmobs.py 2021 09 01 30
+  bsub -n 1 -q s_medium -P 0510 python fcst_skills_MedFSVsAI_pmobs.py 2021 10 01 31
+  bsub -n 1 -q s_medium -P 0510 python fcst_skills_MedFSVsAI_pmobs.py 2021 11 01 30
+  bsub -n 1 -q s_medium -P 0510 python fcst_skills_MedFSVsAI_pmobs.py 2021 12 01 31
+  bsub -n 1 -q s_medium -P 0510 python fcst_skills_MedFSVsAI_pmobs.py 2022 01 01 31
+  bsub -n 1 -q s_medium -P 0510 python fcst_skills_MedFSVsAI_pmobs.py 2022 02 01 28
+  bsub -n 1 -q s_medium -P 0510 python fcst_skills_MedFSVsAI_pmobs.py 2022 03 01 31
+  bsub -n 1 -q s_medium -P 0510 python fcst_skills_MedFSVsAI_pmobs.py 2022 04 01 30
+  bsub -n 1 -q s_medium -P 0510 python fcst_skills_MedFSVsAI_pmobs.py 2022 05 01 31
+  bsub -n 1 -q s_medium -P 0510 python fcst_skills_MedFSVsAI_pmobs.py 2022 06 01 30
+  bsub -n 1 -q s_medium -P 0510 python fcst_skills_MedFSVsAI_pmobs.py 2022 07 01 31
+
+  bsub -n 1 -q s_medium -P 0510 python fcst_skills_MedFSVsAI_pmobs_v5.py 2021 08 01 31
+  bsub -n 1 -q s_medium -P 0510 python fcst_skills_MedFSVsAI_pmobs_v5.py 2021 09 01 30
+  bsub -n 1 -q s_medium -P 0510 python fcst_skills_MedFSVsAI_pmobs_v5.py 2021 10 01 31
+  bsub -n 1 -q s_medium -P 0510 python fcst_skills_MedFSVsAI_pmobs_v5.py 2021 11 01 30
+  bsub -n 1 -q s_medium -P 0510 python fcst_skills_MedFSVsAI_pmobs_v5.py 2021 12 01 31
+  bsub -n 1 -q s_medium -P 0510 python fcst_skills_MedFSVsAI_pmobs_v5.py 2022 01 01 31
+  bsub -n 1 -q s_medium -P 0510 python fcst_skills_MedFSVsAI_pmobs_v5.py 2022 02 01 28
+  bsub -n 1 -q s_medium -P 0510 python fcst_skills_MedFSVsAI_pmobs_v5.py 2022 03 01 31
+  bsub -n 1 -q s_medium -P 0510 python fcst_skills_MedFSVsAI_pmobs_v5.py 2022 04 01 30
+  bsub -n 1 -q s_medium -P 0510 python fcst_skills_MedFSVsAI_pmobs_v5.py 2022 05 01 31
+  bsub -n 1 -q s_medium -P 0510 python fcst_skills_MedFSVsAI_pmobs_v5.py 2022 06 01 30
+  bsub -n 1 -q s_medium -P 0510 python fcst_skills_MedFSVsAI_pmobs_v5.py 2022 07 01 31
+
+
+ bsub -n 1 -q s_medium -P 0510 -Is python fcst_skills_MedFSVsAI_pmobs.py 2021 08 01 31 > out_2021_08.txt
+ bsub -n 1 -q s_medium -P 0510 -Is python fcst_skills_MedFSVsAI_pmobs.py 2021 09 01 30 > out_2021_09.txt
+ bsub -n 1 -q s_medium -P 0510 -Is python fcst_skills_MedFSVsAI_pmobs.py 2021 10 01 31 > out_2021_10.txt
+ bsub -n 1 -q s_medium -P 0510 -Is python fcst_skills_MedFSVsAI_pmobs.py 2021 11 01 30 > out_2021_11.txt
+ bsub -n 1 -q s_medium -P 0510 -Is python fcst_skills_MedFSVsAI_pmobs.py 2021 12 01 31 > out_2021_12.txt
+ bsub -n 1 -q s_medium -P 0510 -Is python fcst_skills_MedFSVsAI_pmobs.py 2022 01 01 31 > out_2022_01.txt
+ bsub -n 1 -q s_medium -P 0510 -Is python fcst_skills_MedFSVsAI_pmobs.py 2022 02 01 28 > out_2022_02.txt
+ bsub -n 1 -q s_medium -P 0510 -Is python fcst_skills_MedFSVsAI_pmobs.py 2022 03 01 31 > out_2022_03.txt
+ bsub -n 1 -q s_medium -P 0510 -Is python fcst_skills_MedFSVsAI_pmobs.py 2022 04 01 30 > out_2022_04.txt
+ bsub -n 1 -q s_medium -P 0510 -Is python fcst_skills_MedFSVsAI_pmobs.py 2022 05 01 31 > out_2022_05.txt
+ bsub -n 1 -q s_medium -P 0510 -Is python fcst_skills_MedFSVsAI_pmobs.py 2022 06 01 30 > out_2022_06.txt
+ bsub -n 1 -q s_medium -P 0510 -Is python fcst_skills_MedFSVsAI_pmobs.py 2022 07 01 31 > out_2022_07.txt
+
+#
+#
+#
