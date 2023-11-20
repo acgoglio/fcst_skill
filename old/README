@@ -1,0 +1,6 @@
+ plot_QVR_ALL_10-30_obs_mv_avg_3rd.py             --> 3rd forecast day (spec depth)
+ plot_QVR_ALL_10-30_obs_mv_avg_alltime_ANAL.py    --> analysis (spec depth)
+ plot_QVR_ALL_SURF_obs_mv_avg_3rd.py              --> 3rd forecast day (surf)
+ plot_QVR_ALL_SURF_obs_mv_avg_alltime_ANAL.py     --> analysis (surf)
+ plot_T_10-30_Anal_3rd.py                         --> 
+ plot_T_10-30_Pers_Anal_3rd.py

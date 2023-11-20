@@ -13,6 +13,7 @@
 # the script fcst_skills_MedFSVsAI.py is ready for the comparison MF DM
 # the script fcst_skills_MedFSVsAI_pm.py produces monthly analysis (and time-series)  
 # the script fcst_skills_MedFSVsAI_pmobs.py produces monthly analysis (and time-series) + obs number
+# the script fcst_skills_MedFSVsAI_pyobs.py produces yearly analysis (and time-series) + obs number
 #
   bsub -n 1 -q s_medium -P 0510 python fcst_skills_MedFSVsAI_pmobs.py 2021 08 01 31
   bsub -n 1 -q s_medium -P 0510 python fcst_skills_MedFSVsAI_pmobs.py 2021 09 01 30

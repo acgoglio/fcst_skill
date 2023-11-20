@@ -1,0 +1,33 @@
+TO CREATE THE FILES WITH THE INFO OF THE GRIDS FOR THE INTERPOLATION WITH CDO (FOR SST)
+- mygrid_24deg is the file with the info of the starting grid 1/24
+  a) select an output NEMO file _T of EAS5 es: mfs_eas5-20200825-20200825-f-T.nc
+  b) cdo griddes mfs_eas5-20200825-20200825-f-T.nc > mygrid_24deg
+- mygrid_16deg is the file with the info of the final grid 1/16
+  a) select an output NEMO file _T of EAS1 es: mfs_efs1_20200909_20200909_s_T.nc
+  b) python modify_netcdf_EAS1_CDO.py (change the absolute path at line 7) (From nav_lat of EAS1 to nav_lat of SST)
+  c) cdo griddes mfs_efs1_20200909_20200909_s_T.nc > mygrid_16deg
+
+mygrid_16deg and mygrid_24deg must be saved in the directory with the static files for the QVR.
+
+Command to interpolate
+cdo remapbil,mygrid_16deg -setgrid,mygrid_24deg infile outfile
+
+TO CREATE THE MONTHLY FILE TO UPLOAD ON THE FTP SITE OF MOI:
+- cd /your_path/{YorEnvironmentName}
+- . setup.sh
+- sh ./pack/or-validation/MED_QVR/QVR.dir/postprocQVR.sh YYYYMM01 YYYYMMDD
+YYYYMM01 and YYYYMMDD are the first and the last date of the month to which the statistics refer
+
+The output files of the previous script are:
+- TEMP.nc
+- product_quality_stats_MEDSEA-ANALYSISFORECAST-PHY-006-013_YYYYMM01_YYYYMMDD.nc
+
+TO CHECK ALL THE STATISTICS (on Zeus or Juno):
+bsub -n 1 -q s_long -J PLOTMVR -e /work/opa/mfs/aderr -o /work/opa/mfs/adout -P 0510 "python ./pack/or-validation/MED_QVR/QVR.dir/checkQVR.py dirin dirplotput YYYYMM01 YYYYMMDD NN"
+
+dirin is the directory where there is the file TEMP.nc
+dirplotput is the directory where the output plots are created
+YYYYMM01 and YYYYMMDD are the first and the last date of the month to which the statistics refer
+NN=0 if we want only the plots for the Med basin
+NN=1 if we want the plots for the Med basin and for all the 16 subregions.
+

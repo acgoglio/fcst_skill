@@ -260,7 +260,7 @@ for var_idx,var in enumerate(input_vars):
 
             # MEAN PLOT RMSD and MSD
             fig = plt.figure(figsize=(8,10))
-            plt.rc('font', size=14)
+            plt.rc('font', size=12)
             fig_name = workdir+'mean_'+var+'_RMSD_MSD_'+str(depths_defn[depth_idx])+'_'+str(start_date)+'-'+str(end_date)+'_'+str(area_code)+'.png'
             print ('Plot: ',fig_name)
 
@@ -302,10 +302,10 @@ for var_idx,var in enumerate(input_vars):
             plt.plot(fields_defn,p_rmsd_2,'o-',color="blue",label='Mean RMSD Persistence '+dataset_names[1])
             plt.plot(fields_defn,f_rmsd_2,'o-',color="orange",label='Mean RMSD Forecast '+dataset_names[1])
 
-            ylabel("Mean RMSD ["+udm[var_idx]+']',fontsize=14)
+            ylabel("Mean RMSD ["+udm[var_idx]+']',fontsize=12)
             plt.grid('on')
-            plt.legend(loc='upper left', ncol=1,  shadow=True, fancybox=True, framealpha=0.5, fontsize=14)
-            plt.title(str(start_date)+'-'+str(end_date)+' Mean RMSD of '+var+' at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=14)
+            plt.legend(loc='upper left', ncol=1,  shadow=True, fancybox=True, framealpha=0.5, fontsize=12)
+            plt.title(str(start_date)+'-'+str(end_date)+' Mean RMSD of '+var+' at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=12)
             
             
             #2nd PLOT: MSD
@@ -346,10 +346,10 @@ for var_idx,var in enumerate(input_vars):
             plt.plot(fields_defn,p_msd_2,'o-',color="blue",label='Mean MSD Persistence '+dataset_names[1])
             plt.plot(fields_defn,f_msd_2,'o-',color="orange",label='Mean MSD Forecast '+dataset_names[1])
 
-            ylabel("Mean MSD ["+udm[var_idx]+'^2]',fontsize=14)
+            ylabel("Mean MSD ["+udm[var_idx]+'^2]',fontsize=12)
             plt.grid('on')
-            plt.legend(loc='upper left', ncol=1,  shadow=True, fancybox=True, framealpha=0.5, fontsize=14)
-            plt.title(str(start_date)+'-'+str(end_date)+' Mean MSD of '+var+' at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=14)
+            plt.legend(loc='upper left', ncol=1,  shadow=True, fancybox=True, framealpha=0.5, fontsize=12)
+            plt.title(str(start_date)+'-'+str(end_date)+' Mean MSD of '+var+' at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=12)
 
             plt.tight_layout()
             plt.savefig(fig_name,format='png',dpi=1200)
@@ -358,7 +358,7 @@ for var_idx,var in enumerate(input_vars):
 
             # MEAN PLOT RMSD and ACC
             fig = plt.figure(figsize=(8,10))
-            plt.rc('font', size=14)
+            plt.rc('font', size=12)
             fig_name = workdir+'mean_'+var+'_RMSD_ACC_'+str(depths_defn[depth_idx])+'_'+str(start_date)+'-'+str(end_date)+'_'+str(area_code)+'.png'
             print ('Plot: ',fig_name)
 
@@ -400,10 +400,10 @@ for var_idx,var in enumerate(input_vars):
             plt.plot(fields_defn,p_rmsd_2,'o-',color="blue",label='Mean RMSD Persistence '+dataset_names[1])
             plt.plot(fields_defn,f_rmsd_2,'o-',color="orange",label='Mean RMSD Forecast '+dataset_names[1])
 
-            ylabel("Mean RMSD ["+udm[var_idx]+']',fontsize=14)
+            ylabel("Mean RMSD ["+udm[var_idx]+']',fontsize=12)
             plt.grid('on')
-            plt.legend(loc='upper left', ncol=1,  shadow=True, fancybox=True, framealpha=0.5, fontsize=14)
-            plt.title(str(start_date)+'-'+str(end_date)+' Mean RMSD of '+var+' at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=14)
+            plt.legend(loc='upper left', ncol=1,  shadow=True, fancybox=True, framealpha=0.5, fontsize=12)
+            plt.title(str(start_date)+'-'+str(end_date)+' Mean RMSD of '+var+' at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=12)
 
             #2nd PLOT: ACC
             plt.subplot(2,1,2)
@@ -441,10 +441,10 @@ for var_idx,var in enumerate(input_vars):
             plt.plot(fields_defn,p_acc_2,'-o',color="blue",label='Mean ACC Persistence '+dataset_names[1])
             plt.plot(fields_defn,f_acc_2,'-o',color="orange",label='Mean ACC Forecast '+dataset_names[1])
 
-            ylabel("Mean ACC",fontsize=14)
+            ylabel("Mean ACC",fontsize=12)
             plt.grid('on')
-            plt.legend(loc='upper right', ncol=1,  shadow=True, fancybox=True, framealpha=0.5, fontsize=14)
-            plt.title(str(start_date)+'-'+str(end_date)+' Mean ACC of '+var+' at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=14)
+            plt.legend(loc='upper right', ncol=1,  shadow=True, fancybox=True, framealpha=0.5, fontsize=12)
+            plt.title(str(start_date)+'-'+str(end_date)+' Mean ACC of '+var+' at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=12)
 
             plt.tight_layout()
             plt.savefig(fig_name,format='png',dpi=1200)
@@ -454,8 +454,8 @@ for var_idx,var in enumerate(input_vars):
          if flag_ts == 1 :
 
             # 1) RMSD TS PLOT
-            fig = plt.figure(0,figsize=(11,5))
-            plt.rc('font', size=10)
+            fig = plt.figure(0,figsize=(8,4))
+            plt.rc('font', size=12)
             fig_name = workdir+var+'_RMSD_'+str(depths_defn[depth_idx])+'_'+str(start_date)+'-'+str(end_date)+'_'+str(area_code)+'_nopers_obs.png'
             print ('Plot: ',fig_name)
       
@@ -483,7 +483,7 @@ for var_idx,var in enumerate(input_vars):
 
             ax1.yaxis.tick_right()
             ax1.yaxis.set_label_position("right")
-            ylabel("N. OBS",fontsize=16,color="black")
+            ylabel("N. OBS",fontsize=12,color="black")
             ax1.yaxis.label.set_color('gray')
             ax1.spines['right'].set_color('gray')
       
@@ -520,21 +520,21 @@ for var_idx,var in enumerate(input_vars):
                       globals()['line_2_'+str(field_idx)] = ax.plot(time_var,li_2,color=colors[field_idx-7],label=fields_defn_ts[field_idx]+' '+dataset_names[1]+' mean='+str(round(mean_li_2,3))+udm[var_idx],marker='*',linestyle='dashed',linewidth=1.5)
                       #globals()['line_2_'+str(field_idx)] = ax.plot(time_var,li_2,color=colors[field_idx-7],label=fields_defn_ts[field_idx]+' '+dataset_names[1]+' mean='+str(round(mean_li_2,3))+udm[var_idx]+'(t0='+str(np.round(li_2[0],3))+udm[var_idx]+')',marker='*',linestyle='dashed',linewidth=1.5)
 
-            ylabel("RMSD ["+udm[var_idx]+']',fontsize=16)
+            ylabel("RMSD ["+udm[var_idx]+']',fontsize=12)
             plt.axhline(linewidth=2, color='black')
             ax.grid('on')
             if flag_rolling_mean == 1:
-               plt.title(var+' RMSD of '+str(rolling_mean_days)+' days avg at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=16)
+               plt.title(var+' RMSD of '+str(rolling_mean_days)+' days avg at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=12)
             else:
-               plt.title(var+' RMSD at '+str(depths_defn[depth_idx])+' m - '+str(start_date)+'-'+str(end_date)+' - '+ area_names[area_code] ,fontsize=16)
-            #ax.xaxis.set_major_locator(mdates.YearLocator())
-            #ax.xaxis.set_minor_locator(mdates.MonthLocator((1,4,7,10)))
-            ax.xaxis.set_major_locator(mdates.MonthLocator())
-            ax.xaxis.set_minor_locator(mdates.DayLocator())
-            #ax.xaxis.set_major_formatter(mdates.DateFormatter("\n%Y"))
-            #ax.xaxis.set_minor_formatter(mdates.DateFormatter("%b"))
-            ax.xaxis.set_major_formatter(mdates.DateFormatter("\n%Y-%m"))
-            ax.xaxis.set_minor_formatter(mdates.DateFormatter("%d"))
+               plt.title(var+' RMSD at '+str(depths_defn[depth_idx])+' m - '+str(start_date)+'-'+str(end_date)+' - '+ area_names[area_code] ,fontsize=12)
+            ax.xaxis.set_major_locator(mdates.YearLocator())
+            ax.xaxis.set_minor_locator(mdates.MonthLocator(())) #1,4,7,10)))
+            #ax.xaxis.set_major_locator(mdates.MonthLocator())
+            #ax.xaxis.set_minor_locator(mdates.DayLocator())
+            ax.xaxis.set_major_formatter(mdates.DateFormatter("\n%Y"))
+            ax.xaxis.set_minor_formatter(mdates.DateFormatter("%b"))
+            #ax.xaxis.set_major_formatter(mdates.DateFormatter("\n%Y-%m"))
+            #ax.xaxis.set_minor_formatter(mdates.DateFormatter("%d"))
             ax.margins(x=0)
             plt.setp(ax.get_xticklabels(), rotation=0, ha="center")
             ax.spines['right'].set_color('white')  
@@ -551,8 +551,8 @@ for var_idx,var in enumerate(input_vars):
             plt.clf()
 
             # 2) MSD TS PLOT
-            fig = plt.figure(0,figsize=(11,5))
-            plt.rc('font', size=10)
+            fig = plt.figure(0,figsize=(8,4))
+            plt.rc('font', size=12)
             fig_name = workdir+var+'_MSD_'+str(depths_defn[depth_idx])+'_'+str(start_date)+'-'+str(end_date)+'_'+str(area_code)+'_nopers_obs.png'
             print ('Plot: ',fig_name)
 
@@ -578,7 +578,7 @@ for var_idx,var in enumerate(input_vars):
 
             ax1.yaxis.tick_right()
             ax1.yaxis.set_label_position("right")
-            ylabel("N. OBS",fontsize=16,color="black")
+            ylabel("N. OBS",fontsize=12,color="black")
             ax1.yaxis.label.set_color('gray')
             ax1.spines['right'].set_color('gray')
 
@@ -615,21 +615,21 @@ for var_idx,var in enumerate(input_vars):
                       globals()['line_2_'+str(field_idx)] = ax.plot(time_var,li_2,color=colors[field_idx-7],label=fields_defn_ts[field_idx]+' '+dataset_names[1]+' mean='+str(round(mean_li_2,3))+udm[var_idx],marker='*',linestyle='dashed',linewidth=1.5)
                       #globals()['line_2_'+str(field_idx)] = ax.plot(time_var,li_2,color=colors[field_idx-7],label=fields_defn_ts[field_idx]+' '+dataset_names[1]+' mean='+str(round(mean_li_2,3))+udm[var_idx]+'(t0='+str(np.round(li_2[0],3))+udm[var_idx]+')',marker='*',linestyle='dashed',linewidth=1.5)
 
-            ylabel("MSD ["+udm[var_idx]+'^2]'+']',fontsize=16)
+            ylabel("MSD ["+udm[var_idx]+'^2]'+']',fontsize=12)
             plt.axhline(linewidth=2, color='black')
             ax.grid('on')
             if flag_rolling_mean == 1:
-               plt.title(var+' MSD of '+str(rolling_mean_days)+' days avg at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=16)
+               plt.title(var+' MSD of '+str(rolling_mean_days)+' days avg at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=12)
             else:
-               plt.title(var+' MSD at '+str(depths_defn[depth_idx])+' m - '+str(start_date)+'-'+str(end_date)+' - '+ area_names[area_code] ,fontsize=16)
-            #ax.xaxis.set_major_locator(mdates.YearLocator())
-            #ax.xaxis.set_minor_locator(mdates.MonthLocator((1,4,7,10)))
-            ax.xaxis.set_major_locator(mdates.MonthLocator())
-            ax.xaxis.set_minor_locator(mdates.DayLocator())
-            #ax.xaxis.set_major_formatter(mdates.DateFormatter("\n%Y"))
-            #ax.xaxis.set_minor_formatter(mdates.DateFormatter("%b"))
-            ax.xaxis.set_major_formatter(mdates.DateFormatter("\n%Y-%m"))
-            ax.xaxis.set_minor_formatter(mdates.DateFormatter("%d"))
+               plt.title(var+' MSD at '+str(depths_defn[depth_idx])+' m - '+str(start_date)+'-'+str(end_date)+' - '+ area_names[area_code] ,fontsize=12)
+            ax.xaxis.set_major_locator(mdates.YearLocator())
+            ax.xaxis.set_minor_locator(mdates.MonthLocator(())) #1,4,7,10)))
+            #ax.xaxis.set_major_locator(mdates.MonthLocator())
+            #ax.xaxis.set_minor_locator(mdates.DayLocator())
+            ax.xaxis.set_major_formatter(mdates.DateFormatter("\n%Y"))
+            ax.xaxis.set_minor_formatter(mdates.DateFormatter("%b"))
+            #ax.xaxis.set_major_formatter(mdates.DateFormatter("\n%Y-%m"))
+            #ax.xaxis.set_minor_formatter(mdates.DateFormatter("%d"))
             ax.margins(x=0)
             plt.setp(ax.get_xticklabels(), rotation=0, ha="center")
             ax.spines['right'].set_color('white')
@@ -648,7 +648,7 @@ for var_idx,var in enumerate(input_vars):
       
             # 3) ACC TS PLOT
             fig = plt.figure(0,figsize=(11,5))
-            plt.rc('font', size=10)
+            plt.rc('font', size=12)
             fig_name = workdir+var+'_ACC_'+str(depths_defn[depth_idx])+'_'+str(start_date)+'-'+str(end_date)+'_'+str(area_code)+'_nopers_obs.png'
             print ('Plot: ',fig_name)
 
@@ -674,7 +674,7 @@ for var_idx,var in enumerate(input_vars):
 
             ax1.yaxis.tick_right()
             ax1.yaxis.set_label_position("right")
-            ylabel("N. OBS",fontsize=16,color="black")
+            ylabel("N. OBS",fontsize=12,color="black")
             ax1.yaxis.label.set_color('gray')
             ax1.spines['right'].set_color('gray')
 
@@ -711,21 +711,21 @@ for var_idx,var in enumerate(input_vars):
                       globals()['line_2_'+str(field_idx)] = ax.plot(time_var,li_2,color=colors[field_idx-7],label=fields_defn_ts[field_idx]+' '+dataset_names[1]+' mean='+str(round(mean_li_2,3)),marker='*',linestyle='dashed',linewidth=1.5)
                       #globals()['line_2_'+str(field_idx)] = ax.plot(time_var,li_2,color=colors[field_idx-7],label=fields_defn_ts[field_idx]+' '+dataset_names[1]+' mean='+str(round(mean_li_2,3))+'(t0='+str(np.round(li_2[0],3))+')',marker='*',linestyle='dashed',linewidth=1.5)
 
-            ylabel("ACC ",fontsize=16)
+            ylabel("ACC ",fontsize=12)
             plt.axhline(linewidth=2, color='black')
             ax.grid('on')
             if flag_rolling_mean == 1:
-               plt.title(var+' ACC of '+str(rolling_mean_days)+' days avg at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=16)
+               plt.title(var+' ACC of '+str(rolling_mean_days)+' days avg at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=12)
             else:
-               plt.title(var+' ACC at '+str(depths_defn[depth_idx])+' m - '+str(start_date)+'-'+str(end_date)+' - '+ area_names[area_code] ,fontsize=16)
-            #ax.xaxis.set_major_locator(mdates.YearLocator())
-            #ax.xaxis.set_minor_locator(mdates.MonthLocator((1,4,7,10)))
-            ax.xaxis.set_major_locator(mdates.MonthLocator())
-            ax.xaxis.set_minor_locator(mdates.DayLocator())
-            #ax.xaxis.set_major_formatter(mdates.DateFormatter("\n%Y"))
-            #ax.xaxis.set_minor_formatter(mdates.DateFormatter("%b"))
-            ax.xaxis.set_major_formatter(mdates.DateFormatter("\n%Y-%m"))
-            ax.xaxis.set_minor_formatter(mdates.DateFormatter("%d"))
+               plt.title(var+' ACC at '+str(depths_defn[depth_idx])+' m - '+str(start_date)+'-'+str(end_date)+' - '+ area_names[area_code] ,fontsize=12)
+            ax.xaxis.set_major_locator(mdates.YearLocator())
+            ax.xaxis.set_minor_locator(mdates.MonthLocator(())) #1,4,7,10)))
+            #ax.xaxis.set_major_locator(mdates.MonthLocator())
+            #ax.xaxis.set_minor_locator(mdates.DayLocator())
+            ax.xaxis.set_major_formatter(mdates.DateFormatter("\n%Y"))
+            ax.xaxis.set_minor_formatter(mdates.DateFormatter("%b"))
+            #ax.xaxis.set_major_formatter(mdates.DateFormatter("\n%Y-%m"))
+            #ax.xaxis.set_minor_formatter(mdates.DateFormatter("%d"))
             ax.margins(x=0)
             plt.setp(ax.get_xticklabels(), rotation=0, ha="center")
             ax.spines['right'].set_color('white')

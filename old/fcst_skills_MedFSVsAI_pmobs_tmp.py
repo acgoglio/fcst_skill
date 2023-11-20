@@ -27,7 +27,7 @@ first_day = argv[3]
 last_day  = argv[4]
 
 # -- Workdir path -- 
-workdir = '/work/oda/ag15419/tmp/Ana_Fcst/AI/monthly_comp_v5/'
+workdir = '/work/oda/ag15419/tmp/Ana_Fcst/AI/monthly_comp/'+str(year)+str(per_month)+'/'
 
 # -- Period --
 start_date = int(str(year)+str(per_month)+str(first_day))
@@ -49,8 +49,8 @@ area_names = ["Mediterranean Sea","Alboran Sea","South West Med western part","N
 dataset_names=['ML model','Dynamic model']
 
 # ---  Input archive ---
-input_dir_1             = '/work/opa/ag22216/testVALFOR_18_AI_v5/out/'
-input_dir_2             = '/work/opa/ag22216/testVALFOR_18_END/out/'
+input_dir_1             = workdir+'MF/'
+input_dir_2             = workdir+'DM/'
 input_vars              = ['salinity','sla','sstl3s','sst','temperature'] # Do not change the order..
 input_field_in_filename = ['TEMP','TEMP','TEMP','TEMP','TEMP'] #['PSAL','SSH','SSTL3S','SSTL4','TEMP']
 udm                     = ['PSU','cm','$^{\circ}$C','$^{\circ}$C','$^{\circ}$C']
@@ -158,6 +158,7 @@ for var_idx,var in enumerate(input_vars):
                         var_acc_1 = fh_1.variables['stats_'+var][:,field_idx,depth_idx,7,area_code]
                         var_acc_1[var_acc_1 > 1000] = np.nan
                         var_obs_1  = fh_1.variables['stats_'+var][:,field_idx,depth_idx,0,area_code]
+                        #print ('var_obs:',var_obs_1)
                         fh_1.close()
                         # Check the num of days
                         days_num_infile = len(np.array(time_r))
@@ -197,12 +198,12 @@ for var_idx,var in enumerate(input_vars):
 
                      # Compute the RMSD (time, forecasts, depths, metrics, areas) = sqrt(MSD)
                      try:
-                        globals()['rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(sqrt(var_msd_1))  
-                        globals()['rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(sqrt(var_msd_2)) 
+                        globals()['rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(np.sqrt(var_msd_1))  
+                        globals()['rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(np.sqrt(var_msd_2)) 
                         globals()['msd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(var_msd_1)
                         globals()['msd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(var_msd_2)
-                        print ('PROVA MSD 1:',var_msd_1,' RMSD 1:',sqrt(var_msd_1))
-                        print ('PROVA MSD 2:',var_msd_2,' RMSD 2:',sqrt(var_msd_2))
+                        print ('PROVA MSD 1:',var_msd_1,' RMSD 1:',np.sqrt(var_msd_1),sqrt(var_msd_1))
+                        print ('PROVA MSD 2:',var_msd_2,' RMSD 2:',np.sqrt(var_msd_2),sqrt(var_msd_2))
                      # If nans do not take the square:
                      except:
                         globals()['rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(np.nan) #(var_msd_1) 
@@ -268,7 +269,8 @@ for var_idx,var in enumerate(input_vars):
 
             # MEAN PLOT RMSD and MSD
             fig = plt.figure(figsize=(8,10))
-            plt.rc('font', size=12)
+            plt.rc('font', size=14)
+            #fig_name = workdir+'mean_'+var+'_RMSD_ACC_'+str(depths_defn[depth_idx])+'_'+str(start_yy)+'-'+str(end_yy)+'_'+str(area_code)+'.png'
             fig_name = workdir+'mean_'+var+'_RMSD_MSD_'+str(depths_defn[depth_idx])+'_'+str(start_date)+'-'+str(end_date)+'_'+str(area_code)+'.png'
             print ('Plot: ',fig_name)
 
@@ -310,10 +312,10 @@ for var_idx,var in enumerate(input_vars):
             plt.plot(fields_defn,p_rmsd_2,'o-',color="blue",label='Mean RMSD Persistence '+dataset_names[1])
             plt.plot(fields_defn,f_rmsd_2,'o-',color="orange",label='Mean RMSD Forecast '+dataset_names[1])
 
-            ylabel("Mean RMSD ["+udm[var_idx]+']',fontsize=12)
+            ylabel("Mean RMSD ["+udm[var_idx]+']',fontsize=16)
             plt.grid('on')
-            plt.legend(loc='upper left', ncol=1,  shadow=True, fancybox=True, framealpha=0.5, fontsize=12)
-            plt.title(str(start_date)+'-'+str(end_date)+' Mean RMSD of '+var+' at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=12)
+            plt.legend(loc='upper left', ncol=1,  shadow=True, fancybox=True, framealpha=0.5, fontsize=16)
+            plt.title(str(start_date)+'-'+str(end_date)+' Mean RMSD of '+var+' at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=18)
             
             
             #2nd PLOT: MSD
@@ -354,10 +356,10 @@ for var_idx,var in enumerate(input_vars):
             plt.plot(fields_defn,p_msd_2,'o-',color="blue",label='Mean MSD Persistence '+dataset_names[1])
             plt.plot(fields_defn,f_msd_2,'o-',color="orange",label='Mean MSD Forecast '+dataset_names[1])
 
-            ylabel("Mean MSD ["+udm[var_idx]+'^2]',fontsize=12)
+            ylabel("Mean MSD ["+udm[var_idx]+'^2]',fontsize=16)
             plt.grid('on')
-            plt.legend(loc='upper left', ncol=1,  shadow=True, fancybox=True, framealpha=0.5, fontsize=12)
-            plt.title(str(start_date)+'-'+str(end_date)+' Mean MSD of '+var+' at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=12)
+            plt.legend(loc='upper left', ncol=1,  shadow=True, fancybox=True, framealpha=0.5, fontsize=16)
+            plt.title(str(start_date)+'-'+str(end_date)+' Mean MSD of '+var+' at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=18)
 
             plt.tight_layout()
             plt.savefig(fig_name,format='png',dpi=1200)
@@ -366,7 +368,7 @@ for var_idx,var in enumerate(input_vars):
 
             # MEAN PLOT RMSD and ACC
             fig = plt.figure(figsize=(8,10))
-            plt.rc('font', size=12)
+            plt.rc('font', size=14)
             fig_name = workdir+'mean_'+var+'_RMSD_ACC_'+str(depths_defn[depth_idx])+'_'+str(start_date)+'-'+str(end_date)+'_'+str(area_code)+'.png'
             print ('Plot: ',fig_name)
 
@@ -408,10 +410,10 @@ for var_idx,var in enumerate(input_vars):
             plt.plot(fields_defn,p_rmsd_2,'o-',color="blue",label='Mean RMSD Persistence '+dataset_names[1])
             plt.plot(fields_defn,f_rmsd_2,'o-',color="orange",label='Mean RMSD Forecast '+dataset_names[1])
 
-            ylabel("Mean RMSD ["+udm[var_idx]+']',fontsize=12)
+            ylabel("Mean RMSD ["+udm[var_idx]+']',fontsize=16)
             plt.grid('on')
-            plt.legend(loc='upper left', ncol=1,  shadow=True, fancybox=True, framealpha=0.5, fontsize=12)
-            plt.title(str(start_date)+'-'+str(end_date)+' Mean RMSD of '+var+' at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=12)
+            plt.legend(loc='upper left', ncol=1,  shadow=True, fancybox=True, framealpha=0.5, fontsize=16)
+            plt.title(str(start_date)+'-'+str(end_date)+' Mean RMSD of '+var+' at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=18)
 
             #2nd PLOT: ACC
             plt.subplot(2,1,2)
@@ -449,86 +451,96 @@ for var_idx,var in enumerate(input_vars):
             plt.plot(fields_defn,p_acc_2,'-o',color="blue",label='Mean ACC Persistence '+dataset_names[1])
             plt.plot(fields_defn,f_acc_2,'-o',color="orange",label='Mean ACC Forecast '+dataset_names[1])
 
-            ylabel("Mean ACC",fontsize=12)
+            ylabel("Mean ACC",fontsize=16)
             plt.grid('on')
-            plt.legend(loc='upper right', ncol=1,  shadow=True, fancybox=True, framealpha=0.5, fontsize=12)
-            plt.title(str(start_date)+'-'+str(end_date)+' Mean ACC of '+var+' at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=12)
+            plt.legend(loc='upper right', ncol=1,  shadow=True, fancybox=True, framealpha=0.5, fontsize=16)
+            plt.title(str(start_date)+'-'+str(end_date)+' Mean ACC of '+var+' at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=14)
 
             plt.tight_layout()
             plt.savefig(fig_name,format='png',dpi=1200)
             plt.clf()
                                                                                                                                         
-         #################### TIME SERIES PLOTS ####################3
+         ####################
          if flag_ts == 1 :
-
-            # 1) RMSD TS PLOT
+            # RMSD TS PLOT
             fig = plt.figure(0,figsize=(11,5))
-            plt.rc('font', size=12)
-            fig_name = workdir+var+'_RMSD_'+str(depths_defn[depth_idx])+'_'+str(start_date)+'-'+str(end_date)+'_'+str(area_code)+'_nopers_obs.png'
+            plt.rc('font', size=10)
+            fig_name = workdir+var+'_RMSD_'+str(depths_defn[depth_idx])+'_'+str(start_date)+'-'+str(end_date)+'_'+str(area_code)+'_nopers_obs_DM.png'
             print ('Plot: ',fig_name)
       
             # Obs on the right axes 
             ax1 = fig.add_subplot(111)
+            #if var != 'sst':
             if flag_rolling_mean == 1:
                lo_1 = np.squeeze(pd.DataFrame(globals()['obs_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]).rolling(rolling_mean_days).mean())
             else:
                lo_1 = np.squeeze(np.array(globals()['obs_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
-
+            #else:
+            #   print('WARNING: sstl3 obs for sst..')
             globals()['line_obs_1_'+str(field_idx)] = ax1.fill_between(time_var,lo_1,0,color="navy", label='Obs num '+dataset_names[0],alpha=0.4)
 
+            #if var != 'sst':
             if flag_rolling_mean == 1:
                lo_2 = np.squeeze(pd.DataFrame(globals()['obs_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]).rolling(rolling_mean_days).mean())
             else:
               lo_2 = np.squeeze(np.array(globals()['obs_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
+            #else:
+            #   print('WARNING: sstl3 obs for sst..')
 
             globals()['line_obs_2_'+str(field_idx)] = ax1.fill_between(time_var,lo_2,0,color="red", label='Obs num '+dataset_names[1],alpha=0.2)
 
             ax1.yaxis.tick_right()
             ax1.yaxis.set_label_position("right")
-            ylabel("N. OBS",fontsize=12,color="black")
+            ylabel("N. OBS",fontsize=16,color="black")
             ax1.yaxis.label.set_color('gray')
             ax1.spines['right'].set_color('gray')
       
-            # RMSDs on the left axes
+            # First plot
+            ###plt.subplot(2,1,1)
+            # RMSDs and BIAS on the left axes
             ax = fig.add_subplot(111, sharex=ax1, frameon=False)
       
             # Loop on fields to be plotted
             fields_2_include=[-156, -132, -108, -84, -60, -36,-12, 12, 36, 60, 84, 108, 132, 156]
             fields_defn_ts=['pers 156h','pers 132h','pers 108h','pers 84h','pers 60h','pers 36h','pers 12h','fcst 1d','fcst 2d','fcst 3d','fcst 4d','fcst 5d','fcst 6d','fcst 7d']
-            # TMP to remove the persistence:
             #colors = pl.cm.jet_r(np.linspace(0,1,len(fields_2_include)))
+            # TMP to remove the persistence:
             colors = pl.cm.jet_r(np.linspace(0,1,7))
             for field_idx,field in enumerate(fields_2_include):
                 # Work only on required fields
                    if flag_rolling_mean == 1:
                       li = pd.DataFrame(np.squeeze(globals()['rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)])).rolling(rolling_mean_days).mean()
                    else:
+                      #li = pd.DataFrame(np.squeeze(globals()['rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
                       li = globals()['rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)] 
                       mean_li = np.mean(li)
-                   # TMP to remove the persistence:
                    #globals()['line_'+str(field_idx)] = ax.plot(time_var,li,color=colors[field_idx],label=fields_defn_ts[field_idx]+' '+dataset_names[0]+' mean='+str(round(mean_li,3))+udm[var_idx],linewidth=1.5)
-                   if field_idx > 6 :
-                      globals()['line_1_'+str(field_idx)] = ax.plot(time_var,li,color=colors[field_idx-7],label=fields_defn_ts[field_idx]+' '+dataset_names[0]+' mean='+str(round(mean_li,3))+udm[var_idx],marker='o',linestyle='-',linewidth=1.5)
-                      #globals()['line_1_'+str(field_idx)] = ax.plot(time_var,li,color=colors[field_idx-7],label=fields_defn_ts[field_idx]+' '+dataset_names[0]+' mean='+str(round(mean_li,3))+udm[var_idx]+'(t0='+str(np.round(li[0],3))+udm[var_idx]+')',marker='o',linestyle='-',linewidth=1.5)
+                   # TMP to remove the persistence:
+                   # TMP: to remove the first dataset
+                   #if field_idx > 6 :
+                      #globals()['line_1_'+str(field_idx)] = ax.plot(time_var,li,color=colors[field_idx-7],label=fields_defn_ts[field_idx]+' '+dataset_names[0]+' mean='+str(round(mean_li,3))+udm[var_idx],marker='o',linestyle='-',linewidth=1.5)
+                    #  globals()['line_1_'+str(field_idx)] = ax.plot(time_var,li,color=colors[field_idx-7],label=fields_defn_ts[field_idx]+' '+dataset_names[0]+' mean='+str(round(mean_li,3))+udm[var_idx]+'(t0='+str(np.round(li[0],3))+udm[var_idx]+')',marker='o',linestyle='-',linewidth=1.5)
                    #
                    if flag_rolling_mean == 1:
                       li_2 = pd.DataFrame(globals()['rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]).rolling(rolling_mean_days).mean()
                    else:
+                      #li_2 = pd.DataFrame(globals()['rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)])
                       li_2 = globals()['rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]
                       mean_li_2 = np.mean(li_2)
-                   # TMP to remove the persistence:
                    #globals()['line_2_'+str(field_idx)] = ax.plot(time_var,li_2,color=colors[field_idx],label=fields_defn_ts[field_idx]+' '+dataset_names[1]+' mean='+str(round(mean_li_2,3))+udm[var_idx],linestyle='dashed',linewidth=1.5)
+                   # TMP to remove the persistence:
                    if field_idx > 6 :
-                      globals()['line_2_'+str(field_idx)] = ax.plot(time_var,li_2,color=colors[field_idx-7],label=fields_defn_ts[field_idx]+' '+dataset_names[1]+' mean='+str(round(mean_li_2,3))+udm[var_idx],marker='*',linestyle='dashed',linewidth=1.5)
-                      #globals()['line_2_'+str(field_idx)] = ax.plot(time_var,li_2,color=colors[field_idx-7],label=fields_defn_ts[field_idx]+' '+dataset_names[1]+' mean='+str(round(mean_li_2,3))+udm[var_idx]+'(t0='+str(np.round(li_2[0],3))+udm[var_idx]+')',marker='*',linestyle='dashed',linewidth=1.5)
+                      #globals()['line_2_'+str(field_idx)] = ax.plot(time_var,li_2,color=colors[field_idx-7],label=fields_defn_ts[field_idx]+' '+dataset_names[1]+' mean='+str(round(mean_li_2,3))+udm[var_idx],marker='*',linestyle='dashed',linewidth=1.5)
+                      globals()['line_2_'+str(field_idx)] = ax.plot(time_var,li_2,color=colors[field_idx-7],label=fields_defn_ts[field_idx]+' '+dataset_names[1]+' mean='+str(round(mean_li_2,3))+udm[var_idx]+'(t0='+str(np.round(li_2[0],3))+udm[var_idx]+')',marker='*',linestyle='dashed',linewidth=1.5)
+                   #globals()['line2_'+str(field_idx)] = ax.plot(time_var,li2,'--',color=colors[field_idx],linewidth=1.5)
 
-            ylabel("RMSD ["+udm[var_idx]+']',fontsize=12)
+            ylabel("RMSD ["+udm[var_idx]+']',fontsize=16)
             plt.axhline(linewidth=2, color='black')
             ax.grid('on')
             if flag_rolling_mean == 1:
-               plt.title(var+' RMSD of '+str(rolling_mean_days)+' days avg at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=12)
+               plt.title(var+' RMSD of '+str(rolling_mean_days)+' days avg at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=16)
             else:
-               plt.title(var+' RMSD at '+str(depths_defn[depth_idx])+' m - '+str(start_date)+'-'+str(end_date)+' - '+ area_names[area_code] ,fontsize=12)
+               plt.title(var+' RMSD at '+str(depths_defn[depth_idx])+' m - '+str(start_date)+'-'+str(end_date)+' - '+ area_names[area_code] ,fontsize=16)
             #ax.xaxis.set_major_locator(mdates.YearLocator())
             #ax.xaxis.set_minor_locator(mdates.MonthLocator((1,4,7,10)))
             ax.xaxis.set_major_locator(mdates.MonthLocator())
@@ -542,6 +554,11 @@ for var_idx,var in enumerate(input_vars):
             ax.spines['right'].set_color('white')  
 
             # Legend
+            #handles, labels = ax.get_legend_handles_labels()
+            #box = ax.get_position()
+            #ax.set_position([box.x0, box.y0 + box.height * 0.1,box.width, box.height * 0.9])
+            #leg = plt.legend(reversed(handles),reversed(labels),loc='right',bbox_to_anchor=(0.5, -0.1), ncol=2,  shadow=True, fancybox=True, fontsize=10) 
+            #leg.get_frame().set_alpha(0.3)
             # TMP to remove the persistence (ncol=1 instead on ncol=2):
             plt.legend(loc='lower right', ncol=1,  shadow=True, fancybox=True, framealpha=0.5, fontsize=6)
             
@@ -552,73 +569,86 @@ for var_idx,var in enumerate(input_vars):
             plt.savefig(fig_name,format='png',dpi=1200)
             plt.clf()
 
-            # 2) MSD TS PLOT
+            # MSD TS PLOT
             fig = plt.figure(0,figsize=(11,5))
-            plt.rc('font', size=12)
-            fig_name = workdir+var+'_MSD_'+str(depths_defn[depth_idx])+'_'+str(start_date)+'-'+str(end_date)+'_'+str(area_code)+'_nopers_obs.png'
+            plt.rc('font', size=10)
+            fig_name = workdir+var+'_MSD_'+str(depths_defn[depth_idx])+'_'+str(start_date)+'-'+str(end_date)+'_'+str(area_code)+'_nopers_obs_DM.png'
             print ('Plot: ',fig_name)
 
             # Obs on the right axes 
             ax1 = fig.add_subplot(111)
+            #if var != 'sst':
             if flag_rolling_mean == 1:
                lo_1 = np.squeeze(pd.DataFrame(globals()['obs_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]).rolling(rolling_mean_days).mean())
             else:
                lo_1 = np.squeeze(np.array(globals()['obs_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
+            #else:
+            #   print('WARNING: sstl3 obs for sst..')
             globals()['line_obs_1_'+str(field_idx)] = ax1.fill_between(time_var,lo_1,0,color="navy", label='Obs num '+dataset_names[0],alpha=0.4)
 
+            #if var != 'sst':
             if flag_rolling_mean == 1:
                lo_2 = np.squeeze(pd.DataFrame(globals()['obs_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]).rolling(rolling_mean_days).mean())
             else:
                lo_2 = np.squeeze(np.array(globals()['obs_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
+            #else:
+            #   print('WARNING: sstl3 obs for sst..')
 
             globals()['line_obs_2_'+str(field_idx)] = ax1.fill_between(time_var,lo_2,0,color="red", label='Obs num '+dataset_names[1],alpha=0.2)
 
             ax1.yaxis.tick_right()
             ax1.yaxis.set_label_position("right")
-            ylabel("N. OBS",fontsize=12,color="black")
+            ylabel("N. OBS",fontsize=16,color="black")
             ax1.yaxis.label.set_color('gray')
             ax1.spines['right'].set_color('gray')
 
-            # RMSDs on the left axes
+            # First plot
+            ###plt.subplot(2,1,1)
+            # RMSDs and BIAS on the left axes
             ax = fig.add_subplot(111, sharex=ax1, frameon=False)
 
             # Loop on fields to be plotted
             fields_2_include=[-156, -132, -108, -84, -60, -36,-12, 12, 36, 60, 84, 108, 132, 156]
             fields_defn_ts=['pers 156h','pers 132h','pers 108h','pers 84h','pers 60h','pers 36h','pers 12h','fcst 1d','fcst 2d','fcst 3d','fcst 4d','fcst 5d','fcst 6d','fcst 7d']
-            # TMP to remove the persistence:
             #colors = pl.cm.jet_r(np.linspace(0,1,len(fields_2_include)))
+            # TMP to remove the persistence:
             colors = pl.cm.jet_r(np.linspace(0,1,7))
             for field_idx,field in enumerate(fields_2_include):
                 # Work only on required fields
                    if flag_rolling_mean == 1:
                       li = pd.DataFrame(np.squeeze(globals()['msd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)])).rolling(rolling_mean_days).mean()
                    else:
+                      #li = pd.DataFrame(np.squeeze(globals()['msd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
                       li = globals()['msd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]
                       mean_li = np.mean(li)
-                   # TMP to remove the persistence:
                    #globals()['line_'+str(field_idx)] = ax.plot(time_var,li,color=colors[field_idx],label=fields_defn_ts[field_idx]+' '+dataset_names[0]+' mean='+str(round(mean_li,3))+udm[var_idx]+'^2]',linewidth=1.5)
-                   if field_idx > 6 :
-                      globals()['line_1_'+str(field_idx)] = ax.plot(time_var,li,color=colors[field_idx-7],label=fields_defn_ts[field_idx]+' '+dataset_names[0]+' mean='+str(round(mean_li,3))+udm[var_idx]+'^2]',marker='o',linestyle='-',linewidth=1.5)
+                   # TMP to remove the persistence:
+                   # TMP: to remove the first dataset
+                   #if field_idx > 6 :
+                      #globals()['line_1_'+str(field_idx)] = ax.plot(time_var,li,color=colors[field_idx-7],label=fields_defn_ts[field_idx]+' '+dataset_names[0]+' mean='+str(round(mean_li,3))+udm[var_idx]+'^2]',marker='o',linestyle='-',linewidth=1.5)
+                      # TMP: to remove the first dataset
                       #globals()['line_1_'+str(field_idx)] = ax.plot(time_var,li,color=colors[field_idx-7],label=fields_defn_ts[field_idx]+' '+dataset_names[0]+' mean='+str(round(mean_li,3))+udm[var_idx]+'^2]'+'(t0='+str(np.round(li[0],3))+udm[var_idx]+'^2]'+')',marker='o',linestyle='-',linewidth=1.5)
                    #
                    if flag_rolling_mean == 1:
                       li_2 = pd.DataFrame(globals()['msd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]).rolling(rolling_mean_days).mean()
                    else:
+                      #li_2 = pd.DataFrame(globals()['msd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)])
                       li_2 = globals()['msd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]
                       mean_li_2 = np.mean(li_2)
-                   # TMP to remove the persistence:
                    #globals()['line_2_'+str(field_idx)] = ax.plot(time_var,li_2,color=colors[field_idx],label=fields_defn_ts[field_idx]+' '+dataset_names[1]+' mean='+str(round(mean_li_2,3))+udm[var_idx],linestyle='dashed',linewidth=1.5)
+                   # TMP to remove the persistence:
                    if field_idx > 6 :
-                      globals()['line_2_'+str(field_idx)] = ax.plot(time_var,li_2,color=colors[field_idx-7],label=fields_defn_ts[field_idx]+' '+dataset_names[1]+' mean='+str(round(mean_li_2,3))+udm[var_idx],marker='*',linestyle='dashed',linewidth=1.5)
-                      #globals()['line_2_'+str(field_idx)] = ax.plot(time_var,li_2,color=colors[field_idx-7],label=fields_defn_ts[field_idx]+' '+dataset_names[1]+' mean='+str(round(mean_li_2,3))+udm[var_idx]+'(t0='+str(np.round(li_2[0],3))+udm[var_idx]+')',marker='*',linestyle='dashed',linewidth=1.5)
+                      #globals()['line_2_'+str(field_idx)] = ax.plot(time_var,li_2,color=colors[field_idx-7],label=fields_defn_ts[field_idx]+' '+dataset_names[1]+' mean='+str(round(mean_li_2,3))+udm[var_idx],marker='*',linestyle='dashed',linewidth=1.5)
+                      globals()['line_2_'+str(field_idx)] = ax.plot(time_var,li_2,color=colors[field_idx-7],label=fields_defn_ts[field_idx]+' '+dataset_names[1]+' mean='+str(round(mean_li_2,3))+udm[var_idx]+'(t0='+str(np.round(li_2[0],3))+udm[var_idx]+')',marker='*',linestyle='dashed',linewidth=1.5)
+                   #globals()['line2_'+str(field_idx)] = ax.plot(time_var,li2,'--',color=colors[field_idx],linewidth=1.5)
 
-            ylabel("MSD ["+udm[var_idx]+'^2]'+']',fontsize=12)
+            ylabel("MSD ["+udm[var_idx]+'^2]'+']',fontsize=16)
             plt.axhline(linewidth=2, color='black')
             ax.grid('on')
             if flag_rolling_mean == 1:
-               plt.title(var+' MSD of '+str(rolling_mean_days)+' days avg at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=12)
+               plt.title(var+' MSD of '+str(rolling_mean_days)+' days avg at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=16)
             else:
-               plt.title(var+' MSD at '+str(depths_defn[depth_idx])+' m - '+str(start_date)+'-'+str(end_date)+' - '+ area_names[area_code] ,fontsize=12)
+               plt.title(var+' MSD at '+str(depths_defn[depth_idx])+' m - '+str(start_date)+'-'+str(end_date)+' - '+ area_names[area_code] ,fontsize=16)
             #ax.xaxis.set_major_locator(mdates.YearLocator())
             #ax.xaxis.set_minor_locator(mdates.MonthLocator((1,4,7,10)))
             ax.xaxis.set_major_locator(mdates.MonthLocator())
@@ -632,6 +662,11 @@ for var_idx,var in enumerate(input_vars):
             ax.spines['right'].set_color('white')
 
             # Legend
+            #handles, labels = ax.get_legend_handles_labels()
+            #box = ax.get_position()
+            #ax.set_position([box.x0, box.y0 + box.height * 0.1,box.width, box.height * 0.9])
+            #leg = plt.legend(reversed(handles),reversed(labels),loc='right',bbox_to_anchor=(0.5, -0.1), ncol=2,  shadow=True, fancybox=True, fontsize=10) 
+            #leg.get_frame().set_alpha(0.3)
             # TMP to remove the persistence (ncol=1 instead on ncol=2):
             plt.legend(loc='lower right', ncol=1,  shadow=True, fancybox=True, framealpha=0.5, fontsize=6)
 
@@ -643,95 +678,55 @@ for var_idx,var in enumerate(input_vars):
             plt.clf()
 
       
-            # 3) ACC TS PLOT
-            fig = plt.figure(0,figsize=(11,5))
-            plt.rc('font', size=12)
-            fig_name = workdir+var+'_ACC_'+str(depths_defn[depth_idx])+'_'+str(start_date)+'-'+str(end_date)+'_'+str(area_code)+'_nopers_obs.png'
-            print ('Plot: ',fig_name)
-
-            # Obs on the right axes 
-            ax1 = fig.add_subplot(111)
-            if flag_rolling_mean == 1:
-               lo_1 = np.squeeze(pd.DataFrame(globals()['obs_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]).rolling(rolling_mean_days).mean())
-            else:
-               lo_1 = np.squeeze(np.array(globals()['obs_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
-            globals()['line_obs_1_'+str(field_idx)] = ax1.fill_between(time_var,lo_1,0,color="navy", label='Obs num '+dataset_names[0],alpha=0.4)
-
-            if flag_rolling_mean == 1:
-               lo_2 = np.squeeze(pd.DataFrame(globals()['obs_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]).rolling(rolling_mean_days).mean())
-            else:
-               lo_2 = np.squeeze(np.array(globals()['obs_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
-
-            globals()['line_obs_2_'+str(field_idx)] = ax1.fill_between(time_var,lo_2,0,color="red", label='Obs num '+dataset_names[1],alpha=0.2)
-
-            ax1.yaxis.tick_right()
-            ax1.yaxis.set_label_position("right")
-            ylabel("N. OBS",fontsize=12,color="black")
-            ax1.yaxis.label.set_color('gray')
-            ax1.spines['right'].set_color('gray')
-
-            # ACCs on the left axes
-            ax = fig.add_subplot(111, sharex=ax1, frameon=False)
-
-            # Loop on fields to be plotted
-            fields_2_include=[-156, -132, -108, -84, -60, -36,-12, 12, 36, 60, 84, 108, 132, 156]
-            fields_defn_ts=['pers 156h','pers 132h','pers 108h','pers 84h','pers 60h','pers 36h','pers 12h','fcst 1d','fcst 2d','fcst 3d','fcst 4d','fcst 5d','fcst 6d','fcst 7d']
-            # TMP to remove the persistence:
-            #colors = pl.cm.jet_r(np.linspace(0,1,len(fields_2_include)))
-            colors = pl.cm.jet_r(np.linspace(0,1,7))
-            for field_idx,field in enumerate(fields_2_include):
-                # Work only on required fields
-                   if flag_rolling_mean == 1:
-                      li = pd.DataFrame(np.squeeze(globals()['acc_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)])).rolling(rolling_mean_days).mean()
-                   else:
-                      li = globals()['acc_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]
-                      mean_li = np.mean(li)
-                   # TMP to remove the persistence:
-                   #globals()['line_'+str(field_idx)] = ax.plot(time_var,li,color=colors[field_idx],label=fields_defn_ts[field_idx]+' '+dataset_names[0]+' mean='+str(round(mean_li,3)),linewidth=1.5)
-                   if field_idx > 6 :
-                      globals()['line_1_'+str(field_idx)] = ax.plot(time_var,li,color=colors[field_idx-7],label=fields_defn_ts[field_idx]+' '+dataset_names[0]+' mean='+str(round(mean_li,3)),marker='o',linestyle='-',linewidth=1.5)
-                      #globals()['line_1_'+str(field_idx)] = ax.plot(time_var,li,color=colors[field_idx-7],label=fields_defn_ts[field_idx]+' '+dataset_names[0]+' mean='+str(round(mean_li,3))+'(t0='+str(np.round(li[0],3))+')',marker='o',linestyle='-',linewidth=1.5)
-                   #
-                   if flag_rolling_mean == 1:
-                      li_2 = pd.DataFrame(globals()['acc_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]).rolling(rolling_mean_days).mean()
-                   else:
-                      li_2 = globals()['acc_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]
-                      mean_li_2 = np.mean(li_2)
-                   # TMP to remove the persistence:
-                   #globals()['line_2_'+str(field_idx)] = ax.plot(time_var,li_2,color=colors[field_idx],label=fields_defn_ts[field_idx]+' '+dataset_names[1]+' mean='+str(round(mean_li_2,3)),linestyle='dashed',linewidth=1.5)
-                   if field_idx > 6 :
-                      globals()['line_2_'+str(field_idx)] = ax.plot(time_var,li_2,color=colors[field_idx-7],label=fields_defn_ts[field_idx]+' '+dataset_names[1]+' mean='+str(round(mean_li_2,3)),marker='*',linestyle='dashed',linewidth=1.5)
-                      #globals()['line_2_'+str(field_idx)] = ax.plot(time_var,li_2,color=colors[field_idx-7],label=fields_defn_ts[field_idx]+' '+dataset_names[1]+' mean='+str(round(mean_li_2,3))+'(t0='+str(np.round(li_2[0],3))+')',marker='*',linestyle='dashed',linewidth=1.5)
-
-            ylabel("ACC ",fontsize=12)
-            plt.axhline(linewidth=2, color='black')
-            ax.grid('on')
-            if flag_rolling_mean == 1:
-               plt.title(var+' ACC of '+str(rolling_mean_days)+' days avg at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=12)
-            else:
-               plt.title(var+' ACC at '+str(depths_defn[depth_idx])+' m - '+str(start_date)+'-'+str(end_date)+' - '+ area_names[area_code] ,fontsize=12)
-            #ax.xaxis.set_major_locator(mdates.YearLocator())
-            #ax.xaxis.set_minor_locator(mdates.MonthLocator((1,4,7,10)))
-            ax.xaxis.set_major_locator(mdates.MonthLocator())
-            ax.xaxis.set_minor_locator(mdates.DayLocator())
-            #ax.xaxis.set_major_formatter(mdates.DateFormatter("\n%Y"))
-            #ax.xaxis.set_minor_formatter(mdates.DateFormatter("%b"))
-            ax.xaxis.set_major_formatter(mdates.DateFormatter("\n%Y-%m"))
-            ax.xaxis.set_minor_formatter(mdates.DateFormatter("%d"))
-            ax.margins(x=0)
-            plt.setp(ax.get_xticklabels(), rotation=0, ha="center")
-            ax.spines['right'].set_color('white')
-
-            # Legend
-            # TMP to remove the persistence (ncol=1 instead on ncol=2):
-            plt.legend(loc='lower right', ncol=1,  shadow=True, fancybox=True, framealpha=0.5, fontsize=6)
-
-            # time axis range
-            ax.set_xlim([time_var[0] - timedelta(days=1),time_var[-1] + timedelta(days=1)]) #([datetime.date(2014, 1, 26), datetime.date(2014, 2, 1)])
-
-            plt.tight_layout()
-            plt.savefig(fig_name,format='png',dpi=1200)
-            plt.clf()
-
+#            # ACC TS
+#            fig = plt.figure(0,figsize=(11,5))
+#            fig_name = workdir+var+'_ACC_'+str(depth)+'_'+str(start_yy)+'-'+str(end_yy)+'_'+str(area_code)+'.png'
+#            print ('Plot: ',fig_name)
+#      
+#            # Obs on the right axes 
+#            ax2 = fig.add_subplot(111)
+#            #globals()['line_obs2_'+str(field_idx)] = ax2.fill_between(time_var,lo,0,color="gray", label='Obs num',alpha=0.4)
+#            ax2.yaxis.tick_right()
+#            ax2.yaxis.set_label_position("right")
+#            #ylabel("N. OBS",fontsize=16,color="gray")
+#            ax2.yaxis.label.set_color('gray')
+#            ax2.spines['right'].set_color('gray')
+#      
+#            # CORR on the left axes
+#            ax = fig.add_subplot(111, sharex=ax2, frameon=False)
+#      
+#            # Loop on fields to be plotted
+#            colors = pl.cm.jet_r(np.linspace(0,1,len(fields)))
+#            for field_idx,field in reversed(list(enumerate(fields))):
+#                print ('IDX',field_idx,colors[field_idx])
+#                if field == -156 or field == -132 or field == -108 or field == -84 or field == -60 or field == -36 or field == -12 or field == 12 or field == 36 or field == 60 or field == 84 or field == 108 or field == 132 or field == 156 :
+#                   li3 = pd.DataFrame(globals()['corr_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]).rolling(rolling_mean_days).mean()
+#                   q13 = pd.DataFrame(globals()['corr_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]).rolling(rolling_mean_days).quantile(0.25)
+#                   q33 = pd.DataFrame(globals()['corr_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]).rolling(rolling_mean_days).quantile(0.75)
+#                   q1q33=np.squeeze(np.array([[q13],[q33]]))
+#                   globals()['line3_'+str(field_idx)] = ax.plot(time_var,li3,color=colors[field_idx],label=fields_defn[field_idx],linewidth=1.5)
+#      
+#            ylabel("ACC",fontsize=16)
+#            plt.ylim(top=1.0)
+#            ax.grid('on')
+#            plt.title(var+' ACC of '+str(rolling_mean_days)+' days avg at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=16)
+#            ax.xaxis.set_major_locator(mdates.YearLocator())
+#            ax.xaxis.set_minor_locator(mdates.MonthLocator((1,4,7,10)))
+#            ax.xaxis.set_major_formatter(mdates.DateFormatter("\n%Y"))
+#            ax.xaxis.set_minor_formatter(mdates.DateFormatter("%b"))
+#            ax.margins(x=0)
+#            plt.setp(ax.get_xticklabels(), rotation=0, ha="center")
+#            ax.spines['right'].set_color('gray')
+#
+#            # Legend
+#            handles, labels = ax.get_legend_handles_labels()
+#            box = ax.get_position()
+#            ax.set_position([box.x0, box.y0 + box.height * 0.1,box.width, box.height * 0.9])
+#            leg = plt.legend(reversed(handles),reversed(labels),loc='upper center',bbox_to_anchor=(0.5, -0.1), ncol=2,  shadow=True, fancybox=True, fontsize=12)
+#            leg.get_frame().set_alpha(0.3)
+#
+#            plt.tight_layout()
+#            plt.savefig(fig_name,format='png',dpi=1200)
+#            plt.clf()
    
          #######################

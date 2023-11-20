@@ -201,16 +201,12 @@ for var_idx,var in enumerate(input_vars):
                         globals()['rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(sqrt(var_msd_2)) 
                         globals()['msd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(var_msd_1)
                         globals()['msd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(var_msd_2)
-                        print ('PROVA MSD 1:',var_msd_1,' RMSD 1:',sqrt(var_msd_1))
-                        print ('PROVA MSD 2:',var_msd_2,' RMSD 2:',sqrt(var_msd_2))
                      # If nans do not take the square:
                      except:
-                        globals()['rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(np.nan) #(var_msd_1) 
-                        globals()['rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(np.nan) #(var_msd_2)
-                        globals()['msd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(np.nan) #(var_msd_1)
-                        globals()['msd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(np.nan) #(var_msd_2)
-                        print ('PROVA MSD 1:',var_msd_1,' RMSD 1:',np.nan)
-                        print ('PROVA MSD 2:',var_msd_2,' RMSD 2:',np.nan)
+                        globals()['rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(np.nan) 
+                        globals()['rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(np.nan) 
+                        globals()['msd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(np.nan) 
+                        globals()['msd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(np.nan) 
 
                      # Read the anomaly correlation
                      globals()['acc_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(var_acc_1)
@@ -266,7 +262,7 @@ for var_idx,var in enumerate(input_vars):
          #####################
          if flag_mean == 1 :
 
-            # MEAN PLOT RMSD and MSD
+            # 1) MEAN PLOT RMSD and MSD
             fig = plt.figure(figsize=(8,10))
             plt.rc('font', size=12)
             fig_name = workdir+'mean_'+var+'_RMSD_MSD_'+str(depths_defn[depth_idx])+'_'+str(start_date)+'-'+str(end_date)+'_'+str(area_code)+'.png'
@@ -364,7 +360,7 @@ for var_idx,var in enumerate(input_vars):
             plt.clf()
 
 
-            # MEAN PLOT RMSD and ACC
+            # 2) MEAN PLOT RMSD and ACC
             fig = plt.figure(figsize=(8,10))
             plt.rc('font', size=12)
             fig_name = workdir+'mean_'+var+'_RMSD_ACC_'+str(depths_defn[depth_idx])+'_'+str(start_date)+'-'+str(end_date)+'_'+str(area_code)+'.png'
@@ -457,7 +453,127 @@ for var_idx,var in enumerate(input_vars):
             plt.tight_layout()
             plt.savefig(fig_name,format='png',dpi=1200)
             plt.clf()
-                                                                                                                                        
+
+
+            # 3) BOX-PLOT RMSD and ACC
+            fig = plt.figure(figsize=(8,10))
+            plt.rc('font', size=12)
+            fig_name = workdir+'boxplot_'+var+'_RMSD_ACC_'+str(depths_defn[depth_idx])+'_'+str(start_date)+'-'+str(end_date)+'_'+str(area_code)+'.png'
+            print ('Plot: ',fig_name)
+
+            # 1st PLOT: RMSD
+            plt.subplot(2,1,1)
+            # Plot each field
+            fields_2_include=[12, 36, 60, 84, 108, 132, 156]
+            fields_defn = ['1 Day','2 Day','3 Day','4 Day','5 Day','6 Day','7 Day']
+            fields_defn =  np.array(fields_defn)
+            print ('Prova',fields_2_include)
+            for field_idx,field in enumerate(fields_2_include):
+                     print ('Prova',field_idx)
+                     try:
+                        f_rmsd_1.append(float(globals()['mean_rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
+                     except:
+                        f_rmsd_1.append(np.nan)
+                     try:
+                        f_rmsd_2.append(float(globals()['mean_rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
+                     except:
+                        f_rmsd_2.append(np.nan)
+            #
+            # Set the correct order to the persistence values
+            p_rmsd_1=p_rmsd_1[::-1]
+            p_rmsd_2=p_rmsd_2[::-1]
+            plt.plot(fields_defn,f_rmsd_1,'o-',color="red",label='Mean RMSD Forecast '+dataset_names[0])
+            plt.plot(fields_defn,f_rmsd_2,'o-',color="orange",label='Mean RMSD Forecast '+dataset_names[1])
+
+            ylabel("Mean RMSD ["+udm[var_idx]+']',fontsize=12)
+            plt.grid('on')
+            plt.legend(loc='upper left', ncol=1,  shadow=True, fancybox=True, framealpha=0.5, fontsize=12)
+            plt.title(str(start_date)+'-'+str(end_date)+' Mean RMSD of '+var+' at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=12)
+
+#            fig = plt.figure(figsize=(8,10))
+#            plt.rc('font', size=12)
+#            fig_name = workdir+'boxplot_'+var+'_RMSD_ACC_'+str(depths_defn[depth_idx])+'_'+str(start_date)+'-'+str(end_date)+'_'+str(area_code)+'.png'
+#            print ('Plot: ',fig_name)
+#            ax1, ax2, ax3, ax4 = fig.subplots(4)
+#            # 1st PLOT: RMSD
+#            plt.subplot(2,1,1)
+#            # Plot each field
+#            fields_2_include=[-156, -132, -108, -84, -60, -36,-12, 12, 36, 60, 84, 108, 132, 156]
+#            fields_defn = ['1 Day','2 Day','3 Day','4 Day','5 Day','6 Day','7 Day']
+#            fields_defn =  np.array(fields_defn)
+#            boxplot_idx=0
+#            for field_idx,field in enumerate(fields_2_include):
+#                  if field > 0 :
+#                     print ('BOXPLOT of ',field )
+#                     globals()['bplot_'+str(boxplot_idx)]=plt.boxplot(np.array(globals()['rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]).T,whis=1.5,patch_artist=True) #labels='Forecast '+dataset_names[0],patch_artist=True)
+#                     boxplot_idx=boxplot_idx+1
+#                     globals()['bplot_'+str(boxplot_idx)]=plt.boxplot(np.array(globals()['rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]).T,whis=1.5,patch_artist=True) #labels='Forecast '+dataset_names[1],patch_artist=True)
+#                     boxplot_idx=boxplot_idx+1
+#            print ('HOWMANY BP ',boxplot_idx)
+#            BP_colors = ['lightpink','lightblue','lightgray','lightpink','lightblue','lightgray','lightpink','lightpink','lightblue','lightgray','lightpink','lightblue','lightgray','lightpink']
+#            for bplot_idx in range(0,boxplot_idx):
+#                 bplot=globals()['bplot_'+str(bplot_idx)]
+#                 for patch, color in zip(bplot['boxes'], BP_colors):
+#                     patch.set_facecolor(color)
+
+
+            # TMP
+ #           field_idx=0
+ #           field=12
+ #           print ('BOXPLOT of ',field )
+#            #globals()['bplot_'+str(field_idx)]=plt.boxplot(np.array(globals()['rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]).T,whis=1.5,patch_artist=True)
+#            plt.plot(fields_defn,f_rmsd_1,'-o',color="red",label='Mean ACC Forecast '+dataset_names[0])
+
+
+            #2nd PLOT: ACC
+            plt.subplot(2,1,2)
+            # Plot each field
+            p_acc_1=[]
+            f_acc_1=[]
+            p_acc_2=[]
+            f_acc_2=[]
+            for field_idx,field in enumerate(fields_2_include):
+                  if field <0 :
+                     try:
+                        p_acc_1.append(float(globals()['mean_acc_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
+                     except:
+                        p_acc_1.append(np.nan)
+                     try:
+                        p_acc_2.append(float(globals()['mean_acc_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
+                     except:
+                        p_acc_2.append(np.nan)
+                  else:
+                     try:
+                        f_acc_1.append(float(globals()['mean_acc_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
+                     except:
+                        f_acc_1.append(np.nan)
+                     try:
+                        f_acc_2.append(float(globals()['mean_acc_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
+                     except:
+                        f_acc_2.append(np.nan)
+
+            # Set the correct order for the persistence values
+            p_acc_1=p_acc_1[::-1]
+            p_acc_2=p_acc_2[::-1]
+
+            plt.plot(fields_defn,p_acc_1,'-o',color="green",label='Mean ACC Persistence '+dataset_names[0])
+            plt.plot(fields_defn,f_acc_1,'-o',color="red",label='Mean ACC Forecast '+dataset_names[0])
+            plt.plot(fields_defn,p_acc_2,'-o',color="blue",label='Mean ACC Persistence '+dataset_names[1])
+            plt.plot(fields_defn,f_acc_2,'-o',color="orange",label='Mean ACC Forecast '+dataset_names[1])
+
+            ylabel("Mean ACC",fontsize=12)
+            plt.grid('on')
+            plt.legend(loc='upper right', ncol=1,  shadow=True, fancybox=True, framealpha=0.5, fontsize=12)
+            plt.title(str(start_date)+'-'+str(end_date)+' Mean ACC of '+var+' at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=12)
+
+            plt.tight_layout()
+            plt.savefig(fig_name,format='png',dpi=1200)
+            plt.clf()
+                 
+                                                                                                                                
+
+
+
          #################### TIME SERIES PLOTS ####################3
          if flag_ts == 1 :
 

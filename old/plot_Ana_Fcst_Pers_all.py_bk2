@@ -1,0 +1,452 @@
+# AC Goglio Sep 2022
+# Script for Forecast skill score
+# Load condaE virtual env!
+
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+import numpy as np
+from netCDF4 import Dataset
+import netCDF4 as ncdf
+import datetime
+import pandas as pd
+import glob
+from numpy import *
+import warnings
+from pylab import ylabel
+import matplotlib.pylab as pl 
+warnings.filterwarnings("ignore")
+
+#####################################
+
+# -- Workdir path -- 
+workdir = '/work/oda/ag15419/tmp/Ana_Fcst_Pers_area6/'
+
+# -- Period --
+start_yy = 2017
+end_yy   = 2021
+
+# -- Analysis type --
+flag_ts = 1
+flag_mean = 1
+
+# -- Area code --
+area_code  = 0
+area_names = ["Mediterranean Sea","Alboran Sea","South West Med western part","North West Med","South West Med eastern part","Tyrrhenian Sea southern part","Tyrrhenian Sea northern part","Ionian Sea western part","Ionian Sea south-eastern part","Ionian Sea north-eastern part","Adriatic Sea southern part","Adriatic Sea northern part","Levantine Sea western part","Aegean Sea","Levantine Sea central-northern part","Levantine Sea central-southern part","Levantine Sea eastern part"]
+
+# ---  Input archive ---
+input_dir          ='/data/opa/ag22216/BACKUP_work_ATHENA/QVR/HOMOGENIZED/'
+input_prefile_name ='product_quality_stats_MEDSEA-ANALYSISFORECAST-PHY-006-013_'
+#
+timestep_ini_2017  = ['0101','0401','0701','1001']
+timestep_end_2017  = ['0331','0630','0930','1231']
+timestep_ini_2018  = timestep_ini_2017
+timestep_end_2018  = timestep_end_2017
+timestep_ini_2019  = ['0101','0401','0501','0601','0701','0801','0901','1001','1101','1201']
+timestep_end_2019  = ['0331','0430','0531','0630','0731','0831','0930','1031','1130','1231']
+timestep_ini_2020  = ['0101','0201','0301','0401','0501','0601','0701','0801','0901','1001','1101','1201']
+timestep_end_2020  = ['0131','0229','0331','0430','0531','0630','0731','0831','0930','1031','1130','1231']
+timestep_ini_2021  = ['0101','0201','0501','0601','0701','0801','0901','1001','1101','1201']
+timestep_end_2021  = ['0131','0430','0531','0630','0731','0831','0930','1031','1130','1231']
+timestep_ini_2022  = ['0101','0201','0301','0401','0501','0601','0701','0801','0901','1001','1101','1201']
+timestep_end_2022  = ['0131','0228','0331','0430','0531','0630','0731','0831','0930','1031','1130','1231']
+#
+input_vars = ['salinity','sla','sst','sstl3s','temperature'] 
+udm        = ['PSU','cm','$^{\circ}$C','$^{\circ}$C','$^{\circ}$C']
+
+# --- Set the num of days to be included in the rolling mean ---
+rolling_mean_days = 30
+
+#############################
+
+# Input checks
+if start_yy > end_yy :
+   print ('ERROR: start_yy > end_yy!!')
+   quit()
+else: 
+   print ('PERIOD: ',start_yy,end_yy)
+
+# Loop on vars
+for var_idx,var in enumerate(input_vars):
+    print ('I am working on var ',var)
+
+    # Loop on vertical layers (1 plot each, if a combination is needed the arrays in the fields loop must include the depth index in the name)
+    if var == 'salinity' or var == 'temperature':
+       depths      = [10, 30, 60, 100, 150, 300, 600, 1000, 2000]
+       depths_defn = ['0-10', '10-30', '30-60', '60-100', '100-150', '150-300', '300-600', '600-1000', '1000-2000']
+    elif var == 'sla' or var == 'sst' or var == 'sstl3s':
+       depths      = [0] 
+       depths_defn = ['0']
+
+    for depth_idx,depth in enumerate(depths):
+      print ('I am working on vlev: ',depth)
+
+      # Fields to be read and plot
+      fields = [1, 0, -12, 12, 60, 108, 204]
+      #fields_defn = ['climatology','analysis','12h hours persistence','12h forecast','60h forecast','108h forecast','204h forecast']
+      fields_defn = ['climatology','analysis','12h hours persistence','1st day forecast','3rd day forecast','5th day forecast','9th day forecast']
+      # Loop on fields
+      for field_idx,field in enumerate(fields): 
+          print ('I am going to extract ',fields_defn[field_idx])
+          # Mean squared error
+          globals()['rmse_'+str(field)+'_'+str(depth)+'_'+var]=[]
+          # Bias computed as mean of product - mean of reference
+          globals()['bias_'+str(field)+'_'+str(depth)+'_'+var]=[]
+          # Correlation
+          globals()['corr_'+str(field)+'_'+str(depth)+'_'+var]=[]
+          # Obs num
+          globals()['obs_'+str(field)+'_'+str(depth)+'_'+var]=[]
+          # Time var   
+          time_var=[]
+         
+          # Loop on input files
+          for yy in range(start_yy,end_yy+1):
+              print ('Working on year',yy)
+              # Define the type of timestep
+              try:
+                 timestep_ini = globals()['timestep_ini_'+str(yy)]
+                 timestep_end = globals()['timestep_end_'+str(yy)]
+              except:
+                 if yy < 2017 :
+                    timestep_ini = timestep_ini_2017
+                    timestep_end = timestep_end_2017
+                 elif yy > 2022 :
+                    timestep_ini = timestep_ini_2022
+                    timestep_end = timestep_end_2022
+              print ('File div ',timestep_ini,timestep_end)
+
+              for timestep_idx in range (0,len(timestep_ini)):
+                  file_to_open=input_dir+input_prefile_name+str(yy)+timestep_ini[timestep_idx]+'_'+str(yy)+timestep_end[timestep_idx]+".nc"
+                  print ('I am opening file: ',file_to_open)
+                  # check the existence of the file and open it
+                  if glob.glob(file_to_open):
+                     fh = ncdf.Dataset(file_to_open,mode='r')
+                     time_r = fh.variables['time'][:]
+                     # var(time, forecasts, surface, metrics, areas)
+                     var_mse  = fh.variables['stats_'+var][:,field_idx,depth_idx,3,area_code]
+                     var_bias = fh.variables['stats_'+var][:,field_idx,depth_idx,1,area_code] - fh.variables['stats_'+var][:,field_idx,depth_idx,2,area_code]
+                     var_bias[var_bias > 1000] = np.nan
+                     var_corr = fh.variables['stats_'+var][:,field_idx,depth_idx,6,area_code]/np.sqrt(fh.variables['stats_'+var][:,field_idx,depth_idx,4,area_code]*fh.variables['stats_'+var][:,field_idx,depth_idx,5,area_code])
+                     var_corr[var_corr > 1000] = np.nan
+                     #var_corr = fh.variables['stats_'+var][:,field_idx,depth_idx,7,area_code]
+                     var_obs  = fh.variables['stats_'+var][:,field_idx,depth_idx,0,area_code]
+                     fh.close()
+                     # Check the num of days
+                     days_num_infile = len(np.array(time_r))
+                     print ('days_num ',days_num_infile)
+                     mm_ini = timestep_ini[timestep_idx][0:2]
+                     dd_ini = timestep_ini[timestep_idx][2:4]
+                     mm_end = timestep_end[timestep_idx][0:2]
+                     dd_end = timestep_end[timestep_idx][2:4]
+                     data_ini = datetime.date(yy,int(mm_ini),int(dd_ini))
+                     data_end = datetime.date(yy,int(mm_end),int(dd_end))
+                     data_all = pd.date_range(start=data_ini,end=data_end)
+                     days_num = len(np.array(data_all))
+                     print ('days_num ',days_num_infile)
+                     if days_num_infile != days_num:
+                        print ('WARNING: Issues with days num!')
+                  else:
+                     print ('WARNING: input file NOT found!')
+                     mm_ini = timestep_ini[timestep_idx][0:2]
+                     dd_ini = timestep_ini[timestep_idx][2:4]
+                     mm_end = timestep_end[timestep_idx][0:2]
+                     dd_end = timestep_end[timestep_idx][2:4]
+                     data_ini = datetime.date(yy,int(mm_ini),int(dd_ini))
+                     data_end = datetime.date(yy,int(mm_end),int(dd_end))
+                     data_all = pd.date_range(start=data_ini,end=data_end)
+                     days_num = len(np.array(data_all))
+                     print ('days_num ',days_num)
+                     var_mse   = np.empty(days_num)
+                     var_bias  = np.empty(days_num)
+                     var_corr  = np.empty(days_num)
+                     var_obs   = np.empty(days_num)
+                 
+                  # Compute the RMSD (time, forecasts, depths, metrics, areas)
+                  try:
+                     globals()['rmse_'+str(field)+'_'+str(depth)+'_'+var].extend(np.sqrt(var_mse[:])) 
+                  except:
+                     globals()['rmse_'+str(field)+'_'+str(depth)+'_'+var].extend(np.array(var_mse[:]))
+                  # Read the bias
+                  globals()['bias_'+str(field)+'_'+str(depth)+'_'+var].extend(np.array(var_bias[:]))
+                  # Read the correlation
+                  globals()['corr_'+str(field)+'_'+str(depth)+'_'+var].extend(np.array(var_corr[:]))
+                  # Read the num of obs in first loop iteration
+                  globals()['obs_'+str(field)+'_'+str(depth)+'_'+var].extend(np.array(var_obs[:]))
+      print ('..Done!')  
+
+      # Compute the date array
+      time_var=pd.date_range(datetime.date(start_yy, 1, 1),datetime.date(end_yy, 12, 31))
+   
+      #####################
+      if flag_ts == 1 :
+         # TS PLOT
+         fig = plt.figure(0,figsize=(11,5))
+         fig_name = workdir+var+'_RMSD_BIAS_'+str(depth)+'_'+str(start_yy)+'-'+str(end_yy)+'.png'
+         print ('Plot: ',fig_name)
+   
+         # Obs on the right axes 
+         ax1 = fig.add_subplot(111)
+         lo = np.squeeze(pd.DataFrame(globals()['obs_'+str(field)+'_'+str(depth)+'_'+var]).rolling(rolling_mean_days).mean())
+         globals()['line_obs_'+str(field_idx)] = ax1.fill_between(time_var,lo,0,color="gray", label='Obs num',alpha=0.4)
+         ax1.yaxis.tick_right()
+         ax1.yaxis.set_label_position("right")
+         ylabel("N. OBS",fontsize=16,color="gray")
+         ax1.yaxis.label.set_color('gray')
+         #ax1.spines['right'].set_color('gray')
+         leg = plt.legend(loc='upper right', ncol=2,  shadow=True, fancybox=True, fontsize=12)
+         leg.get_frame().set_alpha(0.3)
+   
+         # First plot
+         ###plt.subplot(2,1,1)
+         # RMSDs and BIAS on the left axes
+         ax = fig.add_subplot(111, sharex=ax1, frameon=False)
+   
+         # Loop on fields to be plotted
+         colors = pl.cm.jet_r(np.linspace(0,len(fields)))
+         for field_idx,field in reversed(list(enumerate(fields))):
+             print ('IDX',field_idx,colors[field_idx])
+             if field != -12 :
+                li = pd.DataFrame(globals()['rmse_'+str(field)+'_'+str(depth)+'_'+var]).rolling(rolling_mean_days).mean()
+                globals()['line_'+str(field_idx)] = ax.plot(time_var,li,color=colors[field_idx],label=fields_defn[field_idx],linewidth=1.5)
+                if field != 1 :
+                   li2 = pd.DataFrame(globals()['bias_'+str(field)+'_'+str(depth)+'_'+var]).rolling(rolling_mean_days).mean()
+                   globals()['line2_'+str(field_idx)] = ax.plot(time_var,li2,'--',color=colors[field_idx],linewidth=1.5)
+                #globals()['line3_'+str(field_idx)] = ax.plot(time_var,pd.DataFrame(globals()['corr_'+str(field)+'_'+str(depth)+'_'+var]).rolling(rolling_mean_days).mean(),color=colors[field_idx],'-',linewidth=1.5)
+             else:
+                print ('Rm the 12 hours persistence..')
+        
+         ylabel("RMSD/BIAS ["+udm[var_idx]+']',fontsize=16)
+         leg = plt.legend(loc='upper left', ncol=2,  shadow=True, fancybox=True, fontsize=12)
+         leg.get_frame().set_alpha(0.3)
+         plt.axhline(linewidth=2, color='black')
+         ax.grid('on')
+         plt.title(str(start_yy)+'-'+str(end_yy)+' days average of '+var+' RMSD and bias at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=16)
+         ax.xaxis.set_major_locator(mdates.YearLocator())
+         ax.xaxis.set_minor_locator(mdates.MonthLocator((1,4,7,10)))
+         ax.xaxis.set_major_formatter(mdates.DateFormatter("\n%Y"))
+         ax.xaxis.set_minor_formatter(mdates.DateFormatter("%b"))
+         ax.margins(x=0)
+         plt.setp(ax.get_xticklabels(), rotation=0, ha="center")
+   
+   ###      # Second plot
+   ###      plt.subplot(2,1,2)
+   ###      # RMSDs and BIAS on the left axes
+   ###      ax = fig.add_subplot(111, sharex=ax1, frameon=False)
+   ###
+   ###      # Loop on fields to be plotted
+   ###      colors = pl.cm.jet_r(np.linspace(0,len(fields)))
+   ###      for field_idx,field in reversed(list(enumerate(fields))):
+   ###          print ('IDX',field_idx,colors[field_idx])
+   ###          if field != -12 :
+   ###             #globals()['line_'+str(field_idx)] = ax.plot(time_var,pd.DataFrame(globals()['rmse_'+str(field)+'_'+str(depth)+'_'+var]).rolling(rolling_mean_days).mean(),color=colors[field_idx],label=fields_defn[field_idx],linewidth=1.5)
+   ###             #if field != 1 :
+   ###             #   globals()['line2_'+str(field_idx)] = ax.plot(time_var,pd.DataFrame(globals()['bias_'+str(field)+'_'+str(depth)+'_'+var]).rolling(rolling_mean_days).mean(),'--',color=colors[field_idx],linewidth=1.5)
+   ###            globals()['line3_'+str(field_idx)] = ax.plot(time_var,pd.DataFrame(globals()['corr_'+str(field)+'_'+str(depth)+'_'+var]).rolling(rolling_mean_days).mean(),color=colors[field_idx],label=fields_defn[field_idx],linewidth=1.5)
+   ###          else:
+   ###             print ('Rm the 12 hours persistence..')
+   ###
+   ###      ylabel("Correlation",fontsize=16)
+   ###      leg = plt.legend(loc='upper right', ncol=2,  shadow=True, fancybox=True, fontsize=12)
+   ###      leg.get_frame().set_alpha(0.3)
+   ###      ax.grid('on')
+   ###      plt.title(var+' '+str(start_yy)+'-'+str(end_yy)+' '+str(rolling_mean_days)+' days average of RMSD/BIAS @ '+str(depths_defn[depth_idx])+' m -'+area_names[area_code] ,fontsize=16)
+   ###      ax.xaxis.set_major_locator(mdates.YearLocator())
+   ###      ax.xaxis.set_minor_locator(mdates.MonthLocator((1,4,7,10)))
+   ###      ax.xaxis.set_major_formatter(mdates.DateFormatter("\n%Y"))
+   ###      ax.xaxis.set_minor_formatter(mdates.DateFormatter("%b"))
+   ###      ax.margins(x=0)
+   ###      #plt.setp(ax.get_xticklabels(), rotation=0, ha="center")
+   
+         plt.tight_layout()
+         plt.savefig(fig_name,format='png',dpi=1200)
+         plt.clf()
+   
+         # CORR
+         fig = plt.figure(0,figsize=(11,5))
+         fig_name = workdir+var+'_CORR_'+str(depth)+'_'+str(start_yy)+'-'+str(end_yy)+'.png'
+         print ('Plot: ',fig_name)
+   
+         # Obs on the right axes 
+         ax2 = fig.add_subplot(111)
+         globals()['line_obs2_'+str(field_idx)] = ax2.fill_between(time_var,lo,0,color="gray", label='Obs num',alpha=0.4)
+         #(time_var,pd.DataFrame(globals()['obs_'+str(field)+'_'+str(depth)+'_'+var]).rolling(rolling_mean_days).mean(),color="gray", label='Obs num',alpha=0.4)
+         ax2.yaxis.tick_right()
+         ax2.yaxis.set_label_position("right")
+         ylabel("N. OBS",fontsize=16,color="gray")
+         ax2.yaxis.label.set_color('gray')
+         #ax2.spines['right'].set_color('gray')
+         leg = plt.legend(loc='upper right', ncol=2,  shadow=True, fancybox=True, fontsize=12)
+         leg.get_frame().set_alpha(0.3)
+   
+         # CORR on the left axes
+         ax = fig.add_subplot(111, sharex=ax2, frameon=False)
+   
+         # Loop on fields to be plotted
+         colors = pl.cm.jet_r(np.linspace(0,len(fields)))
+         for field_idx,field in reversed(list(enumerate(fields))):
+             print ('IDX',field_idx,colors[field_idx])
+             if field != -12 :
+                globals()['line3_'+str(field_idx)] = ax.plot(time_var,pd.DataFrame(globals()['corr_'+str(field)+'_'+str(depth)+'_'+var]).rolling(rolling_mean_days).mean(),color=colors[field_idx],label=fields_defn[field_idx],linewidth=1.5)
+             else:
+                print ('Rm the 12 hours persistence..')
+   
+         ylabel("Correlation",fontsize=16)
+         leg = plt.legend(loc='lower right', ncol=2,  shadow=True, fancybox=True, fontsize=12)
+         leg.get_frame().set_alpha(0.3)
+         ax.grid('on')
+         plt.axhline(linewidth=2, color='black')
+         plt.title(str(start_yy)+'-'+str(end_yy)+' days average of '+var+' correlation at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=16)
+         ax.xaxis.set_major_locator(mdates.YearLocator())
+         ax.xaxis.set_minor_locator(mdates.MonthLocator((1,4,7,10)))
+         ax.xaxis.set_major_formatter(mdates.DateFormatter("\n%Y"))
+         ax.xaxis.set_minor_formatter(mdates.DateFormatter("%b"))
+         ax.margins(x=0)
+         plt.setp(ax.get_xticklabels(), rotation=0, ha="center")
+   
+         plt.tight_layout()
+         plt.savefig(fig_name,format='png',dpi=1200)
+         plt.clf()
+
+      #######################
+      if flag_mean == 1 :
+
+         # MEAN PLOT
+         fig = plt.figure(figsize=(11,5)) #(0,figsize=(11,5))
+         fig_name = workdir+'mean_'+var+'_RMSD_BIAS_CORR_'+str(depth)+'_'+str(start_yy)+'-'+str(end_yy)+'.png'
+         print ('Plot: ',fig_name)
+         
+         ax = fig.add_subplot(111)
+   
+         # Loop on fields to be plotted
+         globals()['mean_rmse_'+str(depth)+'_'+var]=[]
+         globals()['mean_bias_'+str(depth)+'_'+var]=[]
+         globals()['mean_corr_'+str(depth)+'_'+var]=[]
+         for field_idx,field in enumerate(fields):
+             print (fields_defn[field_idx],'RMSD Val: ',np.nanmean(globals()['rmse_'+str(field)+'_'+str(depth)+'_'+var]))
+             print (fields_defn[field_idx],'BIAS Val: ',np.nanmean(globals()['bias_'+str(field)+'_'+str(depth)+'_'+var]))
+             print (fields_defn[field_idx],'CORR Val: ',np.nanmean(globals()['corr_'+str(field)+'_'+str(depth)+'_'+var]))
+             if field != -12 :
+                globals()['mean_rmse_'+str(depth)+'_'+var].append(np.nanmean(globals()['rmse_'+str(field)+'_'+str(depth)+'_'+var]))
+                globals()['mean_bias_'+str(depth)+'_'+var].append(np.nanmean(globals()['bias_'+str(field)+'_'+str(depth)+'_'+var]))
+                globals()['mean_corr_'+str(depth)+'_'+var].append(np.nanmean(globals()['corr_'+str(field)+'_'+str(depth)+'_'+var]))
+             else:
+                print ('Rm the 12 hours persistence..')
+         #fields_defn_nopers = ['climatology','analysis','12 hours forecast','60 hours forecast','108 hours forecast','204 hours forecast'] 
+         fields_defn_nopers = ['climatology','analysis','1st day forecast','3rd day forecast','5th day forecast','9th day forecast']
+         globals()['point_'+str(field_idx)] = ax.plot(fields_defn_nopers,globals()['mean_rmse_'+str(depth)+'_'+var],'x',color="red",label='Mean RMSD')
+         globals()['point2_'+str(field_idx)] = ax.plot(fields_defn_nopers,globals()['mean_bias_'+str(depth)+'_'+var],'o',color="blue",label='Mean Bias')
+         # Add the numbers in the plot
+         for val_num_idx,val_num in enumerate(globals()['mean_rmse_'+str(depth)+'_'+var]):
+             str_val = str(round(val_num,3))
+             plt.text(fields_defn_nopers[val_num_idx],val_num+0.001,str_val,fontsize=10,color="red")
+         for val_num_idx,val_num in enumerate(globals()['mean_bias_'+str(depth)+'_'+var]):
+             str_val = str(round(val_num,3))
+             plt.text(fields_defn_nopers[val_num_idx],val_num+0.002,str_val,fontsize=10,color="blue")
+         ylabel("Mean RMSD/BIAS ["+udm[var_idx]+']',fontsize=16)
+   
+         ax.grid('on')
+         plt.title(var+' '+str(start_yy)+'-'+str(end_yy)+' Mean RMSD, Bias and Correlation @ '+str(depths_defn[depth_idx])+' m -'+area_names[area_code],fontsize=16)
+         
+         leg = plt.legend(loc='upper left', ncol=2,  shadow=True, fancybox=True, fontsize=12)
+         leg.get_frame().set_alpha(0.3)
+   
+   
+         # Add the correlation on the right axes
+         ax2=ax.twinx()
+         globals()['point3_'+str(field_idx)] = ax2.plot(fields_defn_nopers,globals()['mean_corr_'+str(depth)+'_'+var],'+',color="green",label='Mean Correlation')
+         ax2.set_ylabel("Mean Correlation",fontsize=16)
+         #ax2.yaxis.label.set_color('green')
+         for val_num_idx,val_num in enumerate(globals()['mean_corr_'+str(depth)+'_'+var]):
+             str_val = str(round(val_num,3))
+             plt.text(fields_defn_nopers[val_num_idx],val_num+0.002,str_val,fontsize=10,color="green")
+   
+         leg = plt.legend(loc='upper right', ncol=2,  shadow=True, fancybox=True, fontsize=12)
+         leg.get_frame().set_alpha(0.3)
+   
+   
+         plt.tight_layout()
+         plt.savefig(fig_name,format='png',dpi=1200)
+         plt.clf()
+   
+         ######################
+         # MEAN PLOT 2
+         fig = plt.figure(figsize=(12,15)) #(0,figsize=(11,5))
+         plt.rc('font', size=15)
+         fig_name = workdir+'mean_'+var+'_RMSD_BIAS_CORR_3_'+str(depth)+'_'+str(start_yy)+'-'+str(end_yy)+'.png'
+         print ('Plot: ',fig_name)
+   
+         #Loop on fields to be plotted
+         globals()['mean_rmse_'+str(depth)+'_'+var]=[]
+         globals()['mean_bias_'+str(depth)+'_'+var]=[]
+         globals()['mean_corr_'+str(depth)+'_'+var]=[]
+         for field_idx,field in enumerate(fields):
+             print (fields_defn[field_idx],'RMSD Val: ',np.nanmean(globals()['rmse_'+str(field)+'_'+str(depth)+'_'+var]))
+             print (fields_defn[field_idx],'BIAS Val: ',np.nanmean(globals()['bias_'+str(field)+'_'+str(depth)+'_'+var]))
+             print (fields_defn[field_idx],'CORR Val: ',np.nanmean(globals()['corr_'+str(field)+'_'+str(depth)+'_'+var]))
+             if field != -12 :
+                globals()['mean_rmse_'+str(depth)+'_'+var].append(np.nanmean(globals()['rmse_'+str(field)+'_'+str(depth)+'_'+var]))
+                globals()['mean_bias_'+str(depth)+'_'+var].append(np.nanmean(globals()['bias_'+str(field)+'_'+str(depth)+'_'+var]))
+                globals()['mean_corr_'+str(depth)+'_'+var].append(np.nanmean(globals()['corr_'+str(field)+'_'+str(depth)+'_'+var]))
+             else:
+                print ('Rm the 12 hours persistence..')
+         #fields_defn_nopers = ['climatology','analysis','12h forecast','60h forecast','108h forecast','204h forecast']
+         fields_defn_nopers = ['climatology','analysis','1st day forecast','3rd day forecast','5th day forecast','9th day forecast']
+         fields_defn_nopers = np.array(fields_defn_nopers)
+         fields_defn_nopers_cl = np.hstack([fields_defn_nopers[1:], fields_defn_nopers[:1]])
+
+         # PLOT 1
+         plt.subplot(3,1,1)
+         l_rmsd = globals()['mean_rmse_'+str(depth)+'_'+var]
+         l_rmsd_cl = np.hstack([l_rmsd[1:], l_rmsd[:1]])
+         l_rmsd_nocl = l_rmsd_cl[:-1]
+         globals()['point1_'+str(field_idx)] = plt.plot(fields_defn_nopers_cl[:-1],l_rmsd_nocl,'o-',color="red",label='Mean RMSD')
+         globals()['point1cl_'+str(field_idx)] = plt.plot(fields_defn_nopers_cl[-1],l_rmsd_cl[-1],'o',color="red")
+         for val_num_idx,val_num in enumerate(l_rmsd_cl):
+             str_val = str(round(val_num,3))
+             plt.text(fields_defn_nopers_cl[val_num_idx],val_num+0.001,str_val,fontsize=12,color="red")
+         ylabel("Mean RMSD ["+udm[var_idx]+']',fontsize=16)
+   
+         plt.grid('on')
+         plt.title(str(start_yy)+'-'+str(end_yy)+' Mean RMSD of '+var+' at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=16)
+   
+         leg = plt.legend(loc='upper left', ncol=2,  shadow=True, fancybox=True, fontsize=14)
+         leg.get_frame().set_alpha(0.3)
+       
+         #PLOT 2
+         plt.subplot(3,1,2)
+         l_bias = globals()['mean_bias_'+str(depth)+'_'+var]
+         l_bias_cl = np.hstack([l_bias[1:], l_bias[:1]])
+         l_bias_nocl = l_bias_cl[:-1] 
+         globals()['point2_'+str(field_idx)] = plt.plot(fields_defn_nopers_cl[:-1],l_bias_nocl,'o-',color="blue",label='Mean Bias (MOD-OBS)')
+         globals()['point2cl_'+str(field_idx)] = plt.plot(fields_defn_nopers_cl[-1],l_bias_cl[-1],'o',color="blue")
+         for val_num_idx,val_num in enumerate(l_bias_cl):
+             str_val = str(round(val_num,3))
+             plt.text(fields_defn_nopers_cl[val_num_idx],val_num+0.002,str_val,fontsize=12,color="blue")
+         ylabel("Mean BIAS ["+udm[var_idx]+']',fontsize=16)
+   
+         plt.axhline(linewidth=2, color='black')
+         plt.grid('on')
+         plt.title(str(start_yy)+'-'+str(end_yy)+' Mean Bias of '+var+' at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=16)
+   
+         leg = plt.legend(loc='upper left', ncol=2,  shadow=True, fancybox=True, fontsize=14)
+         leg.get_frame().set_alpha(0.3)
+   
+         #PLOT 3
+         plt.subplot(3,1,3)
+         plt.title(str(start_yy)+'-'+str(end_yy)+' Mean Correlation of '+var+' at '+str(depths_defn[depth_idx])+' m - '+area_names[area_code] ,fontsize=16)
+         l_corr = globals()['mean_corr_'+str(depth)+'_'+var]
+         l_corr_cl = np.hstack([l_corr[1:], l_corr[:1]])
+         l_corr_nocl = l_corr_cl[:-1]
+         globals()['point3_'+str(field_idx)] = plt.plot(fields_defn_nopers_cl[:-1],l_corr_nocl,'o-',color="green",label='Mean Correlation')
+         globals()['point3cl_'+str(field_idx)] = plt.plot(fields_defn_nopers_cl[-1],l_corr_cl[-1],'o',color="green")
+         plt.ylabel("Mean Corr",fontsize=16)
+         for val_num_idx,val_num in enumerate(l_corr_cl):
+             str_val = str(round(val_num,3))
+             plt.text(fields_defn_nopers_cl[val_num_idx],val_num+0.002,str_val,fontsize=12,color="green")
+         
+         leg = plt.legend(loc='lower left', ncol=2,  shadow=True, fancybox=True, fontsize=14)
+         leg.get_frame().set_alpha(0.3)
+         plt.grid('on')
+         
+         plt.tight_layout()
+         plt.savefig(fig_name,format='png',dpi=1200)
+         plt.clf()

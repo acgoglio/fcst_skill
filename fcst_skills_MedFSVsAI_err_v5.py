@@ -124,6 +124,12 @@ for var_idx,var in enumerate(input_vars):
              # Mean Squared Diff
              globals()['msd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]=[]
              globals()['msd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]=[]
+             # Standard Deviation
+             globals()['std_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]=[]
+             globals()['std_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]=[]
+             # Variance
+             globals()['var_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]=[]
+             globals()['var_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]=[]
              # Anomaly Correlation
              globals()['acc_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]=[]
              globals()['acc_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]=[]
@@ -154,7 +160,9 @@ for var_idx,var in enumerate(input_vars):
                         fh_1 = ncdf.Dataset(file_to_open_1,mode='r')
                         time_r = fh_1.variables['time'][:]
                         # var(time, forecasts, depths, metrics, areas) ;
+                        # metrics = number of data values,mean of product,mean of reference,mean squared error,variance of product,variance of reference,covariance,anomaly correlation
                         var_msd_1 = fh_1.variables['stats_'+var][:,field_idx,depth_idx,3,area_code]
+                        var_var_1 = fh_1.variables['stats_'+var][:,field_idx,depth_idx,4,area_code]
                         var_acc_1 = fh_1.variables['stats_'+var][:,field_idx,depth_idx,7,area_code]
                         var_acc_1[var_acc_1 > 1000] = np.nan
                         var_obs_1  = fh_1.variables['stats_'+var][:,field_idx,depth_idx,0,area_code]
@@ -167,9 +175,10 @@ for var_idx,var in enumerate(input_vars):
                            print ('A single day is expected for each input file..')
                      else:
                         print ('WARNING: input file NOT found for date ',yy,mm,dd)
-                        var_msd_1   = np.nan 
+                        var_msd_1  = np.nan 
+                        var_var_1  = np.nan
                         var_acc_1  = np.nan 
-                        var_obs_1   = np.nan 
+                        var_obs_1  = np.nan 
 
                      # check the existence of file 2 and open it
                      if glob.glob(file_to_open_2):
@@ -178,7 +187,9 @@ for var_idx,var in enumerate(input_vars):
                         fh_2 = ncdf.Dataset(file_to_open_2,mode='r')
                         time_r_2 = fh_2.variables['time'][:]
                         # var(time, forecasts, depths, metrics, areas) ;
+                        # metrics = number of data values,mean of product,mean of reference,mean squared error,variance of product,variance of reference,covariance,anomaly correlation
                         var_msd_2  = fh_2.variables['stats_'+var][:,field_idx,depth_idx,3,area_code]
+                        var_var_2  = fh_2.variables['stats_'+var][:,field_idx,depth_idx,4,area_code]
                         var_acc_2 = fh_2.variables['stats_'+var][:,field_idx,depth_idx,7,area_code]
                         var_acc_2[var_acc_2 > 1000] = np.nan
                         var_obs_2  = fh_2.variables['stats_'+var][:,field_idx,depth_idx,0,area_code]
@@ -192,6 +203,7 @@ for var_idx,var in enumerate(input_vars):
                      else:
                         print ('WARNING: input file NOT found for date ',yy,mm,dd)
                         var_msd_2  = np.nan
+                        var_var_2  = np.nan
                         var_acc_2  = np.nan 
                         var_obs_2  = np.nan                     
 
@@ -201,20 +213,31 @@ for var_idx,var in enumerate(input_vars):
                         globals()['rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(sqrt(var_msd_2)) 
                         globals()['msd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(var_msd_1)
                         globals()['msd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(var_msd_2)
-                        print ('PROVA MSD 1:',var_msd_1,' RMSD 1:',sqrt(var_msd_1))
-                        print ('PROVA MSD 2:',var_msd_2,' RMSD 2:',sqrt(var_msd_2))
                      # If nans do not take the square:
                      except:
                         globals()['rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(np.nan) #(var_msd_1) 
                         globals()['rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(np.nan) #(var_msd_2)
                         globals()['msd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(np.nan) #(var_msd_1)
                         globals()['msd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(np.nan) #(var_msd_2)
-                        print ('PROVA MSD 1:',var_msd_1,' RMSD 1:',np.nan)
-                        print ('PROVA MSD 2:',var_msd_2,' RMSD 2:',np.nan)
+
+                     # Compute the STD (time, forecasts, depths, metrics, areas) = sqrt(VAR)
+
 
                      # Read the anomaly correlation
                      globals()['acc_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(var_acc_1)
                      globals()['acc_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(var_acc_2)
+
+                     try:
+                        globals()['std_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(sqrt(var_var_1))
+                        globals()['std_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(sqrt(var_var_2))
+                        globals()['var_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(var_var_1)
+                        globals()['var_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(var_var_2)
+                     # If nans do not take the square:
+                     except:
+                        globals()['std_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(np.nan) #(var_msd_1) 
+                        globals()['std_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(np.nan) #(var_msd_2)
+                        globals()['var_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(np.nan) #(var_msd_1)
+                        globals()['var_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(np.nan) #(var_msd_2)
 
 
                      # Read the num of obs in first loop iteration
@@ -222,37 +245,64 @@ for var_idx,var in enumerate(input_vars):
                      globals()['obs_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)].append(var_obs_2)
 
              # Compute the mean values on the whole period
-             # Mean of the RMSD (if not nans..) and MSD
+             # Mean and percentiles of the RMSD and STD (if not nans..)
              try:
-                globals()['mean_rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]=np.nanmean(globals()['rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)])
+                globals()['mean_rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)] = np.nanmean(globals()['rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)])
+                globals()['mean_std_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]  = np.nanmean(globals()['std_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)])
+                globals()['q25_rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]  = np.percentile(globals()['rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)],25)
+                globals()['q75_rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]  = np.percentile(globals()['rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)],75)
+                globals()['std_rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]  = np.std(globals()['rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)])
              # If the values are nans
              except:
-                globals()['mean_rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]=np.nan #globals()['rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]
-             globals()['mean_msd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]=np.nanmean(globals()['msd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)])
-             print ('PROVA mean MSD 1:',globals()['mean_msd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)],' RMSD 1: ',globals()['mean_rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)])
+                globals()['mean_rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)] = np.nan
+                globals()['mean_std_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]  = np.nan
+                globals()['q25_rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]  = np.nan
+                globals()['q75_rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]  = np.nan
+                globals()['std_rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]  = np.nan
+             # Mean of the MSD
+             globals()['mean_msd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)] = np.nanmean(globals()['msd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)])
              #
              try:
-                globals()['mean_rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]=np.nanmean(globals()['rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)])
+                globals()['mean_rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)] = np.nanmean(globals()['rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)])
+                globals()['mean_std_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]  = np.nanmean(globals()['std_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)])
+                globals()['q25_rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]  = np.percentile(globals()['rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)],25)
+                globals()['q75_rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]  = np.percentile(globals()['rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)],75)
+                globals()['std_rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]  = np.std(globals()['rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)])
              # If the values are nans
              except:
-                globals()['mean_rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]=np.nan #globals()['rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]
-             globals()['mean_msd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]=np.nanmean(globals()['msd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)])
-             print ('PROVA mean MSD 2:',globals()['mean_msd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)],' RMSD 2: ',globals()['mean_rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)])
+                globals()['mean_rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)] = np.nan #globals()['rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]
+                globals()['mean_std_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]  = np.nan
+                globals()['q25_rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]  = np.nan
+                globals()['q75_rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]  = np.nan
+                globals()['std_rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]  = np.nan
+             # Mean of the MSD
+             globals()['mean_msd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)] = np.nanmean(globals()['msd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)])
 
              # Mean of the ACC
              # Mean of the ACC (if not nans..)
              try:
                 globals()['mean_acc_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]=np.nanmean(globals()['acc_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)])
+                globals()['q25_acc_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]=np.percentile(globals()['acc_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)],25)
+                globals()['q75_acc_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]=np.percentile(globals()['acc_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)],75)
+                globals()['std_acc_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]=np.std(globals()['acc_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)])
              # If the values are nans
              except:
-                globals()['mean_acc_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]=np.nan #globals()['acc_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]
+                globals()['mean_acc_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)] = np.nan #globals()['acc_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]
+                globals()['q25_acc_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]  = np.nan
+                globals()['q75_acc_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]  = np.nan
+                globals()['std_acc_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]  = np.nan
              #
              try:
                 globals()['mean_acc_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]=np.nanmean(globals()['acc_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)])
+                globals()['q25_acc_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]=np.percentile(globals()['acc_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)],25)
+                globals()['q75_acc_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]=np.percentile(globals()['acc_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)],75)
+                globals()['std_acc_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]=np.std(globals()['acc_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)])
              # If the values are nans
              except:
-                globals()['mean_acc_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]=np.nan #globals()['acc_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]
-
+                globals()['mean_acc_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)] = np.nan #globals()['acc_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]
+                globals()['q25_acc_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]  = np.nan
+                globals()['q75_acc_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]  = np.nan
+                globals()['std_acc_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]  = np.nan
              # Mean of the OBS
              globals()['mean_obs_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]=np.nanmean(globals()['obs_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)])
              globals()['mean_obs_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]=np.nanmean(globals()['obs_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)])
@@ -269,7 +319,7 @@ for var_idx,var in enumerate(input_vars):
             # MEAN PLOT RMSD and MSD
             fig = plt.figure(figsize=(8,10))
             plt.rc('font', size=12)
-            fig_name = workdir+'mean_'+var+'_RMSD_MSD_'+str(depths_defn[depth_idx])+'_'+str(start_date)+'-'+str(end_date)+'_'+str(area_code)+'.png'
+            fig_name = workdir+'qqmean_'+var+'_RMSD_MSD_'+str(depths_defn[depth_idx])+'_'+str(start_date)+'-'+str(end_date)+'_'+str(area_code)+'.png'
             print ('Plot: ',fig_name)
 
             # 1st PLOT: RMSD
@@ -282,33 +332,95 @@ for var_idx,var in enumerate(input_vars):
             f_rmsd_1=[]
             p_rmsd_2=[]
             f_rmsd_2=[] 
+            p_std_1=[]
+            f_std_1=[]
+            p_std_2=[]
+            f_std_2=[]
+            p_rmsd_q25_1=[]
+            f_rmsd_q25_1=[]
+            p_rmsd_q25_2=[]
+            f_rmsd_q25_2=[]
+            p_rmsd_q75_1=[]
+            f_rmsd_q75_1=[]
+            p_rmsd_q75_2=[]
+            f_rmsd_q75_2=[]
+            p_rmsd_std_1=[]
+            f_rmsd_std_1=[]
+            p_rmsd_std_2=[]
+            f_rmsd_std_2=[]
             for field_idx,field in enumerate(fields_2_include):
                   if field <0 :
                      try:
                         p_rmsd_1.append(float(globals()['mean_rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
+                        p_std_1.append(float(globals()['mean_std_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
+                        p_rmsd_q25_1.append(float(globals()['q25_rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
+                        p_rmsd_q75_1.append(float(globals()['q75_rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
+                        p_rmsd_std_1.append(float(globals()['std_rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
                      except:
                         p_rmsd_1.append(np.nan)
+                        p_std_1.append(np.nan)
+                        p_rmsd_q25_1.append(np.nan)
+                        p_rmsd_q75_1.append(np.nan)
+                        p_rmsd_std_1.append(np.nan)
                      try:
                         p_rmsd_2.append(float(globals()['mean_rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
+                        p_std_1.append(float(globals()['mean_std_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
+                        p_rmsd_q25_2.append(float(globals()['q25_rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
+                        p_rmsd_q75_2.append(float(globals()['q75_rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
+                        p_rmsd_std_2.append(float(globals()['std_rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
                      except:
                         p_rmsd_2.append(np.nan)
+                        p_std_2.append(np.nan)
+                        p_rmsd_q25_2.append(np.nan)
+                        p_rmsd_q75_2.append(np.nan)
+                        p_rmsd_std_2.append(np.nan)
                   else:
                      try:
                         f_rmsd_1.append(float(globals()['mean_rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
+                        f_std_1.append(float(globals()['mean_std_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
+                        f_rmsd_q25_1.append(float(globals()['q25_rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
+                        f_rmsd_q75_1.append(float(globals()['q75_rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
+                        f_rmsd_std_1.append(float(globals()['std_rmsd_1_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
                      except:
                         f_rmsd_1.append(np.nan)
+                        f_std_1.append(np.nan)
+                        f_rmsd_q25_1.append(np.nan)
+                        f_rmsd_q75_1.append(np.nan)
+                        f_rmsd_std_1.append(np.nan)
                      try:
                         f_rmsd_2.append(float(globals()['mean_rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
+                        f_std_2.append(float(globals()['mean_std_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
+                        f_rmsd_q25_2.append(float(globals()['q25_rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
+                        f_rmsd_q75_2.append(float(globals()['q75_rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
+                        f_rmsd_std_2.append(float(globals()['std_rmsd_2_'+str(field)+'_'+str(depth)+'_'+var+'_'+str(area_code)]))
                      except:
                         f_rmsd_2.append(np.nan)
+                        f_std_2.append(np.nan)
+                        f_rmsd_q25_2.append(np.nan)
+                        f_rmsd_q75_2.append(np.nan)
+                        f_rmsd_std_2.append(np.nan)
             #
             # Set the correct order to the persistence values
             p_rmsd_1=p_rmsd_1[::-1]
             p_rmsd_2=p_rmsd_2[::-1]
-            plt.plot(fields_defn,p_rmsd_1,'o-',color="green",label='Mean RMSD Persistence '+dataset_names[0])
-            plt.plot(fields_defn,f_rmsd_1,'o-',color="red",label='Mean RMSD Forecast '+dataset_names[0])
-            plt.plot(fields_defn,p_rmsd_2,'o-',color="blue",label='Mean RMSD Persistence '+dataset_names[1])
-            plt.plot(fields_defn,f_rmsd_2,'o-',color="orange",label='Mean RMSD Forecast '+dataset_names[1])
+            p_rmsd_q25_1=p_rmsd_q25_1[::-1]
+            p_rmsd_q25_2=p_rmsd_q25_2[::-1]
+            p_rmsd_q75_1=p_rmsd_q75_1[::-1]
+            p_rmsd_q75_2=p_rmsd_q75_2[::-1]
+            p_rmsd_std_1=p_rmsd_std_1[::-1]
+            p_rmsd_std_2=p_rmsd_std_2[::-1]
+
+            # Concatenate the arrays:
+            p_rmsd_q25q75_1 = np.stack((p_rmsd_q25_1,p_rmsd_q75_1), axis=0)    
+            p_rmsd_q25q75_2 = np.stack((p_rmsd_q25_2,p_rmsd_q75_2), axis=0)
+            f_rmsd_q25q75_1 = np.stack((f_rmsd_q25_1,f_rmsd_q75_1), axis=0)
+            f_rmsd_q25q75_2 = np.stack((f_rmsd_q25_2,f_rmsd_q75_2), axis=0)
+
+            print ('Prova',f_rmsd_std_1)
+            plt.errorbar(fields_defn,p_rmsd_1,xerr=None,yerr=p_rmsd_std_1,fmt='o-',color="green",label='Mean RMSD Persistence '+dataset_names[0], markersize=8, capsize=20)
+            plt.errorbar(fields_defn,f_rmsd_1,xerr=None,yerr=f_rmsd_std_1,fmt='o-',color="red",label='Mean RMSD Forecast '+dataset_names[0], markersize=8, capsize=20)
+            plt.errorbar(fields_defn,p_rmsd_2,xerr=None,yerr=p_rmsd_std_2,fmt='o-',color="blue",label='Mean RMSD Persistence '+dataset_names[1], markersize=8, capsize=20)
+            plt.errorbar(fields_defn,f_rmsd_2,xerr=None,yerr=f_rmsd_std_2,fmt='o-',color="orange",label='Mean RMSD Forecast '+dataset_names[1], markersize=8, capsize=20)
 
             ylabel("Mean RMSD ["+udm[var_idx]+']',fontsize=12)
             plt.grid('on')
