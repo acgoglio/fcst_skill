@@ -1,4 +1,4 @@
-# AC Goglio Sep 2022
+# AC Goglio Nov 2023
 # Script for Forecast skill score
 # Load condaE virtual env!
 
@@ -20,7 +20,7 @@ warnings.filterwarnings("ignore")
 #####################################
 
 # -- Workdir path -- 
-workdir = '/work/oda/ag15419/tmp/Ana_Fcst/AI/prova_AI/'
+workdir = '/work/oda/ag15419/tmp/prova_AI/'
 
 # -- Period --
 start_date = 20210801
